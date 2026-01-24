@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specimen Dossier | Bureau of Peepy Investigation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Marquee Alert Banner -->
+  <div class="marquee-banner">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      /// CLASSIFIED DOSSIER /// EYES ONLY /// DO NOT DISTRIBUTE /// ITEMLABEL SPECIMEN DATABASE ///
+    </marquee>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__logo">B.P.I.</h1>
+    <p class="header__subtitle">Bureau of Peepy Investigation</p>
+    <p style="color: var(--hot-pink); margin-top: 10px; font-size: 0.9rem;">[ SPECIMEN DOSSIER ]</p>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="index.html" class="nav__link">&larr; Back to Gallery</a>
+    <a href="admin.html" class="nav__link">Admin Portal</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+      <div class="loading__spinner"></div>
+      <p class="loading__text">Decrypting Dossier...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-message hidden" id="error-message">
+      SPECIMEN NOT FOUND. This file may have been redacted or does not exist.
+    </div>
+
+    <!-- Dossier Content -->
+    <div class="dossier hidden" id="dossier">
+      <!-- Mugshot Section -->
+      <aside class="dossier__mugshot">
+        <img src="" alt="Specimen Mugshot" id="mugshot-main">
+
+        <!-- Additional Photos Gallery -->
+        <div class="photo-gallery hidden" id="photo-gallery">
+          <!-- Additional photos will be inserted here -->
+        </div>
+      </aside>
+
+      <!-- Info Section -->
+      <section class="dossier__info">
+        <!-- Header -->
+        <div class="dossier__header">
+          <h2 id="specimen-name" style="margin-bottom: 5px;"></h2>
+          <p id="specimen-codename" style="color: var(--hot-pink); font-size: 1.1rem;"></p>
+          <div class="flex gap-2 mt-2">
+            <span class="badge" id="specimen-status"></span>
+            <div class="threat-level" id="threat-level">
+              <div class="threat-level__bar"></div>
+              <div class="threat-level__bar"></div>
+              <div class="threat-level__bar"></div>
+              <div class="threat-level__bar"></div>
+              <span id="threat-text"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="panel">
+          <div class="panel__title">/// BASIC INFORMATION ///</div>
+          <div class="panel__content">
+            <div class="dossier__field">
+              <div class="dossier__label">Species</div>
+              <div class="dossier__value" id="specimen-species">-</div>
+            </div>
+            <div class="dossier__field">
+              <div class="dossier__label">Acquisition Date</div>
+              <div class="dossier__value" id="specimen-date">-</div>
+            </div>
+            <div class="dossier__field">
+              <div class="dossier__label">Last Known Location</div>
+              <div class="dossier__value" id="specimen-location">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Abilities -->
+        <div class="panel hidden" id="abilities-panel">
+          <div class="panel__title">/// SPECIAL ABILITIES ///</div>
+          <div class="panel__content">
+            <div class="tag-container" id="specimen-abilities">
+              <!-- Abilities will be inserted here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Lore / Narrative -->
+        <div class="panel">
+          <div class="panel__title">/// CLASSIFIED NARRATIVE ///</div>
+          <div class="panel__content">
+            <div id="specimen-lore" style="line-height: 1.8; color: var(--cyber-green);">
+              -
+            </div>
+          </div>
+        </div>
+
+        <!-- Known Associates -->
+        <div class="panel hidden" id="associates-panel">
+          <div class="panel__title">/// KNOWN ASSOCIATES ///</div>
+          <div class="panel__content">
+            <div class="associates-list" id="specimen-associates">
+              <!-- Associates will be inserted here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="panel hidden" id="notes-panel">
+          <div class="panel__title">/// ADDITIONAL NOTES ///</div>
+          <div class="panel__content">
+            <div id="specimen-notes" style="color: var(--neon-yellow); font-style: italic;">
+              -
+            </div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #333; font-size: 0.8rem; color: #555;">
+          <p>File Created: <span id="meta-created">-</span></p>
+          <p>Last Updated: <span id="meta-updated">-</span></p>
+          <p>Filed By: <span id="meta-creator">-</span></p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Image Modal -->
+  <div class="modal-overlay" id="image-modal">
+    <div class="modal" style="max-width: 90vw; max-height: 90vh; overflow: hidden;">
+      <div class="modal__header">
+        <span>EVIDENCE PHOTO</span>
+        <button class="modal__close" onclick="closeImageModal()">&times;</button>
+      </div>
+      <div class="modal__body" style="padding: 0; text-align: center; background: #000;">
+        <img src="" alt="Full size photo" id="modal-image" style="max-width: 100%; max-height: 80vh; object-fit: contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>BUREAU OF PEEPY INVESTIGATION &copy; <span id="year"></span></p>
+    <p style="margin-top: 10px;">All specimens are property of itemLabel. Unauthorized access is prohibited.</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/specimen.js"></script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

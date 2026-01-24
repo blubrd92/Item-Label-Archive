@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Bureau of Peepy Investigation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Marquee Alert Banner -->
+  <div class="marquee-banner" style="background: #990000;">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      /// RESTRICTED ACCESS /// AUTHORIZED PERSONNEL ONLY /// ALL ACTIVITY IS MONITORED AND LOGGED ///
+    </marquee>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__logo">B.P.I.</h1>
+    <p class="header__subtitle">Bureau of Peepy Investigation</p>
+    <p style="color: var(--warning-red); margin-top: 10px; font-size: 0.9rem;">[ ADMIN PORTAL ]</p>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="index.html" class="nav__link">&larr; Public Gallery</a>
+    <a href="admin.html" class="nav__link nav__link--active">Admin Portal</a>
+    <button class="nav__link hidden" id="logout-btn" onclick="handleLogout()">Logout</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Auth Screen (shown when not logged in) -->
+    <div class="auth-screen" id="auth-screen">
+      <div class="auth-box">
+        <div class="auth-box__icon">&#128274;</div>
+        <h2 class="auth-box__title">ACCESS RESTRICTED</h2>
+        <p class="auth-box__message">This area requires Level 5 clearance.<br>Please authenticate to continue.</p>
+        <button class="btn btn--primary" id="login-btn" onclick="handleLogin()">
+          Sign In with Google
+        </button>
+        <p style="margin-top: 20px; color: #555; font-size: 0.8rem;">
+          Unauthorized access attempts are logged and reported.
+        </p>
+      </div>
+    </div>
+
+    <!-- Access Denied Screen -->
+    <div class="auth-screen hidden" id="denied-screen">
+      <div class="auth-box">
+        <div class="auth-box__icon">&#9940;</div>
+        <h2 class="auth-box__title">ACCESS DENIED</h2>
+        <p class="auth-box__message">Your credentials are not authorized for this system.<br>Contact your supervisor for access.</p>
+        <p style="color: var(--hot-pink); margin-bottom: 20px;" id="denied-email"></p>
+        <button class="btn btn--secondary" onclick="handleLogout()">
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading hidden" id="loading">
+      <div class="loading__spinner"></div>
+      <p class="loading__text">Verifying Clearance...</p>
+    </div>
+
+    <!-- Admin Dashboard (shown when authenticated) -->
+    <div class="admin-grid hidden" id="admin-dashboard">
+      <!-- Sidebar - Specimen List -->
+      <aside class="admin-sidebar">
+        <div style="margin-bottom: 20px;">
+          <button class="btn btn--primary" style="width: 100%;" onclick="showNewForm()">
+            + File New Report
+          </button>
+        </div>
+
+        <h3 style="color: var(--neon-yellow); margin-bottom: 15px; font-size: 1rem;">SPECIMEN REGISTRY</h3>
+
+        <div class="loading hidden" id="sidebar-loading">
+          <div class="loading__spinner" style="width: 30px; height: 30px;"></div>
+        </div>
+
+        <ul class="admin-list" id="specimen-list">
+          <!-- Specimen list items will be inserted here -->
+        </ul>
+
+        <p class="hidden" id="no-specimens" style="color: #555; text-align: center; padding: 20px;">
+          No specimens in database.
+        </p>
+      </aside>
+
+      <!-- Main Area - Form -->
+      <section class="admin-main">
+        <!-- Welcome Message (default state) -->
+        <div id="welcome-message">
+          <h2 style="color: var(--neon-yellow);">Welcome, Agent</h2>
+          <p style="color: var(--cyber-green); margin-top: 10px;" id="agent-email"></p>
+          <div style="margin-top: 30px; padding: 20px; border: 2px dashed #333;">
+            <p style="color: #555;">Select a specimen from the list to edit, or click "File New Report" to add a new specimen to the database.</p>
+          </div>
+        </div>
+
+        <!-- Specimen Form -->
+        <div class="hidden" id="specimen-form-container">
+          <h2 id="form-title" style="color: var(--neon-yellow); margin-bottom: 20px;">FILE NEW REPORT</h2>
+
+          <form id="specimen-form">
+            <input type="hidden" id="specimen-id">
+
+            <!-- Basic Info Section -->
+            <div class="panel">
+              <div class="panel__title">/// BASIC INFORMATION ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label" for="name">Specimen Name *</label>
+                  <input type="text" class="form-input" id="name" required placeholder="e.g., Agent Peepy">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="codename">Codename *</label>
+                  <input type="text" class="form-input" id="codename" required placeholder="e.g., SQUEAKY-7">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="species">Species</label>
+                  <input type="text" class="form-input" id="species" placeholder="e.g., Mallard Duck">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                  <div class="form-group">
+                    <label class="form-label" for="status">Status *</label>
+                    <select class="form-select" id="status" required>
+                      <option value="ACTIVE">Active</option>
+                      <option value="MISSING">Missing</option>
+                      <option value="CLASSIFIED">Classified</option>
+                      <option value="RETIRED">Retired</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="threatLevel">Threat Level *</label>
+                    <select class="form-select" id="threatLevel" required>
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                      <option value="CRITICAL">Critical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="acquisitionDate">Acquisition Date</label>
+                  <input type="date" class="form-input" id="acquisitionDate">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="location">Last Known Location</label>
+                  <input type="text" class="form-input" id="location" placeholder="e.g., Sector 7-G, Main Headquarters">
+                </div>
+              </div>
+            </div>
+
+            <!-- Photo Upload Section -->
+            <div class="panel">
+              <div class="panel__title">/// PHOTOGRAPHIC EVIDENCE ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Primary Mugshot *</label>
+                  <div class="file-upload" id="mugshot-upload">
+                    <input type="file" class="file-upload__input" id="mugshot-file" accept="image/*">
+                    <p class="file-upload__text">Click or drag to upload mugshot</p>
+                    <div class="file-upload__preview hidden" id="mugshot-preview"></div>
+                  </div>
+                  <input type="hidden" id="mugshot-url">
+                  <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">Supported: JPG, PNG, GIF, WebP</p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Additional Photos</label>
+                  <div class="file-upload" id="additional-upload">
+                    <input type="file" class="file-upload__input" id="additional-files" accept="image/*" multiple>
+                    <p class="file-upload__text">Click or drag to upload additional photos</p>
+                  </div>
+                  <div class="photo-gallery mt-1" id="additional-previews"></div>
+                  <div id="additional-urls"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narrative Section -->
+            <div class="panel">
+              <div class="panel__title">/// CLASSIFIED NARRATIVE ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label" for="lore">Specimen Lore / Background</label>
+                  <textarea class="form-textarea" id="lore" placeholder="Enter the specimen's backstory and known history...
+
+Use [REDACTED:hidden text] syntax for classified information that will be hidden until hovered.
+
+Example: The specimen was acquired from [REDACTED:Area 51] during operation [REDACTED:Rubber Duck]."></textarea>
+                  <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">
+                    Tip: Use <code style="color: var(--hot-pink);">[REDACTED:text]</code> to hide sensitive information
+                  </p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="notes">Additional Notes</label>
+                  <textarea class="form-textarea" id="notes" style="min-height: 80px;" placeholder="Any additional classified notes..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Abilities Section -->
+            <div class="panel">
+              <div class="panel__title">/// SPECIAL ABILITIES ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Known Abilities</label>
+                  <div class="flex gap-1">
+                    <input type="text" class="form-input" id="ability-input" placeholder="Enter ability and press Add">
+                    <button type="button" class="btn btn--secondary" onclick="addAbility()">Add</button>
+                  </div>
+                  <div class="tag-container mt-1" id="abilities-container">
+                    <!-- Ability tags will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Known Associates Section -->
+            <div class="panel">
+              <div class="panel__title">/// KNOWN ASSOCIATES ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Link to Other Specimens</label>
+                  <select class="form-select" id="associates-select">
+                    <option value="">-- Select a specimen --</option>
+                  </select>
+                  <button type="button" class="btn btn--secondary mt-1" onclick="addAssociate()">Add Associate</button>
+                  <div class="tag-container mt-1" id="associates-container">
+                    <!-- Associate tags will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-2 mt-3">
+              <button type="submit" class="btn btn--primary" id="submit-btn">
+                Submit Report
+              </button>
+              <button type="button" class="btn btn--secondary" onclick="cancelForm()">
+                Cancel
+              </button>
+              <button type="button" class="btn btn--danger hidden" id="delete-btn" onclick="deleteSpecimen()">
+                Delete Specimen
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <div class="modal__header" style="background: var(--warning-red);">
+        <span>CONFIRM DELETION</span>
+        <button class="modal__close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal__body text-center">
+        <p style="color: var(--warning-red); font-size: 1.2rem; margin-bottom: 20px;">
+          Are you sure you want to permanently delete this specimen?
+        </p>
+        <p style="color: var(--neon-yellow); margin-bottom: 30px;" id="delete-specimen-name"></p>
+        <p style="color: #555; margin-bottom: 30px;">This action cannot be undone.</p>
+        <div class="flex gap-2 flex-center">
+          <button class="btn btn--danger" onclick="confirmDelete()">Delete Forever</button>
+          <button class="btn btn--secondary" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Progress Modal -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal__header">
+        <span>UPLOADING</span>
+      </div>
+      <div class="modal__body text-center">
+        <div class="loading__spinner" style="margin: 0 auto 20px;"></div>
+        <p style="color: var(--cyber-green);" id="upload-status">Uploading image...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>BUREAU OF PEEPY INVESTIGATION &copy; <span id="year"></span></p>
+    <p style="margin-top: 10px;">Admin Portal - All actions are logged.</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

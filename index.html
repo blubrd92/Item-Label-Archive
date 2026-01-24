@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bureau of Peepy Investigation | Specimen Archive</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Marquee Alert Banner -->
+  <div class="marquee-banner" id="marquee-banner">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      <span id="marquee-text">/// SYSTEM STATUS: OPERATIONAL /// CLASSIFIED DOCUMENTS /// AUTHORIZED PERSONNEL ONLY /// ITEMLABEL SPECIMEN DATABASE ///</span>
+    </marquee>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__logo">B.P.I.</h1>
+    <p class="header__subtitle">Bureau of Peepy Investigation</p>
+    <p style="color: var(--hot-pink); margin-top: 10px; font-size: 0.9rem;">[ SPECIMEN ARCHIVE DATABASE ]</p>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="index.html" class="nav__link nav__link--active">Specimen Gallery</a>
+    <a href="admin.html" class="nav__link">Admin Portal</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <span class="filter-bar__label">Filter by:</span>
+      <select id="filter-status">
+        <option value="">All Status</option>
+        <option value="ACTIVE">Active</option>
+        <option value="MISSING">Missing</option>
+        <option value="CLASSIFIED">Classified</option>
+        <option value="RETIRED">Retired</option>
+      </select>
+      <select id="filter-threat">
+        <option value="">All Threat Levels</option>
+        <option value="LOW">Low</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="HIGH">High</option>
+        <option value="CRITICAL">Critical</option>
+      </select>
+      <select id="sort-by">
+        <option value="name">Sort: Name</option>
+        <option value="date">Sort: Newest</option>
+        <option value="threat">Sort: Threat Level</option>
+      </select>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+      <div class="loading__spinner"></div>
+      <p class="loading__text">Accessing Classified Database...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-message hidden" id="error-message">
+      Connection to database failed. Please try again later.
+    </div>
+
+    <!-- Empty State -->
+    <div class="panel hidden" id="empty-state">
+      <div class="panel__title">/// NO SPECIMENS FOUND ///</div>
+      <div class="panel__content text-center">
+        <p style="color: var(--cyber-green); margin-bottom: 20px;">The archive is currently empty.</p>
+        <p style="color: var(--hot-pink);">Authorized personnel may add specimens via the Admin Portal.</p>
+      </div>
+    </div>
+
+    <!-- Specimen Grid -->
+    <div class="specimen-grid hidden" id="specimen-grid">
+      <!-- Specimen cards will be dynamically inserted here -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>BUREAU OF PEEPY INVESTIGATION &copy; <span id="year"></span></p>
+    <p style="margin-top: 10px;">All specimens are property of itemLabel. Unauthorized access is prohibited.</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/gallery.js"></script>
+
+  <script>
+    // Set current year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

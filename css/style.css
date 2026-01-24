@@ -1075,29 +1075,52 @@ a:hover {
   .admin-sidebar {
     order: 2;
   }
+
+  .admin-main {
+    order: 1;
+  }
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 20px 15px;
+  }
+
   .header__logo {
     font-size: 2rem;
+  }
+
+  .header__subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 2px;
   }
 
   .nav {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+    padding: 10px;
   }
 
   .nav__link {
     text-align: center;
+    padding: 12px 15px;
+    font-size: 0.85rem;
   }
 
   .specimen-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
   }
 
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+  }
+
+  .filter-bar select {
+    width: 100%;
   }
 
   h1 {
@@ -1107,6 +1130,177 @@ a:hover {
   h2 {
     font-size: 1.4rem;
   }
+
+  /* Admin specific mobile */
+  .admin-tabs {
+    border-bottom: none;
+    border-left: 3px solid var(--cyber-green);
+    flex-direction: column;
+  }
+
+  .admin-tab {
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    margin-bottom: 0;
+    margin-left: -3px;
+    text-align: left;
+    padding: 12px 15px;
+    font-size: 0.8rem;
+  }
+
+  .admin-tab--active {
+    border-left-color: var(--neon-yellow);
+    border-bottom-color: transparent;
+  }
+
+  .admin-sidebar {
+    padding: 15px;
+  }
+
+  .admin-main {
+    padding: 15px;
+  }
+
+  /* Form adjustments */
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Panel adjustments */
+  .panel {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .panel__title {
+    font-size: 0.8rem;
+    padding-left: 8px;
+  }
+
+  /* Dossier adjustments */
+  .dossier__info {
+    padding: 15px;
+  }
+
+  .dossier__header {
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+  }
+
+  .dossier__label {
+    font-size: 0.75rem;
+  }
+
+  .dossier__value {
+    font-size: 0.9rem;
+    padding-left: 10px;
+  }
+
+  /* Associates and field notes */
+  .associates-list,
+  .fieldnotes-list {
+    gap: 8px;
+  }
+
+  .associate-link,
+  .fieldnote-link {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .associate-link__avatar {
+    width: 25px;
+    height: 25px;
+  }
+
+  .associate-link__relation {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+  }
+
+  /* Transcript adjustments */
+  .transcript__header {
+    padding: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .transcript__title {
+    font-size: 0.9rem;
+    width: 100%;
+  }
+
+  .transcript__content {
+    padding: 15px;
+    font-size: 0.85rem;
+  }
+
+  /* Photo gallery */
+  .photo-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+
+  .photo-gallery__item img {
+    height: 80px;
+  }
+
+  /* Modal adjustments */
+  .modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal__body {
+    padding: 15px;
+  }
+
+  /* Auth box */
+  .auth-box {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+
+  .auth-box__icon {
+    font-size: 3rem;
+  }
+
+  /* Button adjustments */
+  .flex.gap-2 {
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+
+  /* Tag container */
+  .tag-container {
+    padding: 8px;
+  }
+
+  .tag {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Threat level */
+  .threat-level {
+    font-size: 0.7rem;
+  }
+
+  .threat-level__bar {
+    width: 6px;
+    height: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1114,17 +1308,160 @@ a:hover {
     padding: 10px;
   }
 
+  .header {
+    padding: 15px 10px;
+  }
+
+  .header__logo {
+    font-size: 1.6rem;
+  }
+
+  .header__subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+  }
+
+  .marquee-banner {
+    font-size: 0.8rem;
+    padding: 8px 0;
+  }
+
   .panel {
-    padding: 15px;
+    padding: 12px;
+    box-shadow: 2px 2px 0 var(--cyber-green);
+  }
+
+  .panel::before {
+    height: 25px;
+  }
+
+  .panel__title {
+    line-height: 25px;
+    margin-top: -12px;
+    font-size: 0.7rem;
+  }
+
+  .specimen-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .specimen-card {
+    box-shadow: 3px 3px 0 var(--hot-pink);
   }
 
   .specimen-card__image {
-    height: 150px;
+    height: 180px;
+  }
+
+  .specimen-card__body {
+    padding: 12px;
+  }
+
+  .specimen-card__name {
+    font-size: 1rem;
+  }
+
+  .specimen-card__codename {
+    font-size: 0.8rem;
+  }
+
+  /* Field notes grid */
+  .fieldnotes-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .fieldnote-card__body {
+    padding: 12px;
+  }
+
+  .fieldnote-card__title {
+    font-size: 1rem;
+  }
+
+  /* Dossier */
+  .dossier__mugshot img {
+    border-width: 3px;
+    box-shadow: 4px 4px 0 var(--hot-pink);
+  }
+
+  .dossier__info {
+    padding: 12px;
+    border-width: 2px;
+  }
+
+  /* Form grid layout fix */
+  div[style*="grid-template-columns: 1fr 1fr"] {
+    display: block !important;
+  }
+
+  div[style*="grid-template-columns: 1fr 1fr"] .form-group {
+    margin-bottom: 15px;
+  }
+
+  /* File upload */
+  .file-upload {
+    padding: 25px 15px;
+  }
+
+  .file-upload__text {
+    font-size: 0.85rem;
+  }
+
+  /* Buttons in flex */
+  .flex.gap-2.mt-3 {
+    flex-direction: column;
+  }
+
+  .flex.gap-2.mt-3 .btn {
+    width: 100%;
+  }
+
+  /* Admin list items */
+  .admin-list__item {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 20px 15px;
+    font-size: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .header__logo {
+    font-size: 1.4rem;
+  }
+
+  .nav__link {
+    padding: 10px 12px;
+    font-size: 0.8rem;
   }
 
   .btn {
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .admin-tab {
+    padding: 10px 12px;
+    font-size: 0.75rem;
   }
 }
 
@@ -1202,24 +1539,28 @@ a:hover {
 /* Admin Tabs */
 .admin-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0;
   margin-bottom: 20px;
   border-bottom: 3px solid var(--cyber-green);
 }
 
 .admin-tab {
-  padding: 12px 25px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: var(--cyber-green);
   font-family: "Courier New", monospace;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s ease;
   border-bottom: 3px solid transparent;
   margin-bottom: -3px;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .admin-tab:hover {
@@ -1240,24 +1581,3 @@ a:hover {
   z-index: 100;
 }
 
-@media (max-width: 768px) {
-  .fieldnotes-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-tabs {
-    flex-direction: column;
-  }
-
-  .admin-tab {
-    border-bottom: none;
-    border-left: 3px solid transparent;
-    margin-bottom: 0;
-    margin-left: -3px;
-  }
-
-  .admin-tab--active {
-    border-left-color: var(--neon-yellow);
-    border-bottom-color: transparent;
-  }
-}

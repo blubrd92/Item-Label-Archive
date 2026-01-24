@@ -218,17 +218,24 @@ async function renderAssociates(specimen) {
   const panel = document.getElementById('associates-panel');
   const container = document.getElementById('specimen-associates');
 
-  // Get direct associates (supports both old format [id] and new format [{id, relation}])
-  let directAssociates = (specimen.knownAssociates || []).map(assoc => {
-    if (typeof assoc === 'string') {
-      return { id: assoc, relation: null };
-    }
-    return assoc;
-  });
+  // Track all associates with direction info
+  // direction: 'outgoing' = this specimen listed them, 'incoming' = they listed this specimen
+  let allAssociates = [];
 
-  // Also check for specimens that list this one as an associate (bi-directional)
+  // Get direct/outgoing associates (ones this specimen listed)
+  const outgoingAssociates = (specimen.knownAssociates || []).map(assoc => {
+    if (typeof assoc === 'string') {
+      return { id: assoc, relation: null, direction: 'outgoing' };
+    }
+    return { ...assoc, direction: 'outgoing' };
+  });
+  allAssociates.push(...outgoingAssociates);
+
+  // Get the IDs of outgoing associates for lookup
+  const outgoingIds = outgoingAssociates.map(a => a.id);
+
+  // Also check for specimens that list this one as an associate (incoming/reverse)
   try {
-    // Query all specimens and check client-side (supports both old and new formats)
     const allSpecimensQuery = await db.collection('specimens').get();
 
     allSpecimensQuery.forEach(doc => {
@@ -236,17 +243,28 @@ async function renderAssociates(specimen) {
 
       const theirAssociates = doc.data().knownAssociates || [];
 
-      // Check if they list this specimen (handle both formats)
+      // Check if they list this specimen
       const theirEntry = theirAssociates.find(a =>
         (typeof a === 'string' && a === specimen.id) ||
         (a && a.id === specimen.id)
       );
 
       if (theirEntry) {
-        const existingIds = directAssociates.map(a => a.id);
-        if (!existingIds.includes(doc.id)) {
-          const relation = typeof theirEntry === 'object' ? theirEntry.relation : null;
-          directAssociates.push({ id: doc.id, relation: relation });
+        const theirRelation = typeof theirEntry === 'object' ? theirEntry.relation : null;
+
+        // Check if we already have them as outgoing
+        const existingOutgoing = allAssociates.find(a => a.id === doc.id && a.direction === 'outgoing');
+
+        if (existingOutgoing) {
+          // We listed them AND they listed us - add their perspective as additional info
+          existingOutgoing.incomingRelation = theirRelation;
+        } else {
+          // They listed us but we didn't list them - add as incoming only
+          allAssociates.push({
+            id: doc.id,
+            relation: theirRelation,
+            direction: 'incoming'
+          });
         }
       }
     });
@@ -254,27 +272,28 @@ async function renderAssociates(specimen) {
     console.log('Could not fetch reverse associates:', error.message);
   }
 
-  if (directAssociates.length === 0) {
+  if (allAssociates.length === 0) {
     return;
   }
 
   panel.classList.remove('hidden');
 
-  // Fetch associate data
-  const associateLinks = await Promise.all(directAssociates.map(async (assoc) => {
+  // Fetch associate data and create links
+  const associateLinks = await Promise.all(allAssociates.map(async (assoc) => {
     try {
-      // Check cache first
+      let data;
       if (associatesCache[assoc.id]) {
-        return createAssociateLink(associatesCache[assoc.id], assoc.relation);
+        data = associatesCache[assoc.id];
+      } else {
+        const doc = await db.collection('specimens').doc(assoc.id).get();
+        if (doc.exists) {
+          data = { id: doc.id, ...doc.data() };
+          associatesCache[assoc.id] = data;
+        } else {
+          return null;
+        }
       }
-
-      const doc = await db.collection('specimens').doc(assoc.id).get();
-      if (doc.exists) {
-        const data = { id: doc.id, ...doc.data() };
-        associatesCache[assoc.id] = data;
-        return createAssociateLink(data, assoc.relation);
-      }
-      return null;
+      return createAssociateLink(data, assoc.relation, assoc.direction, assoc.incomingRelation);
     } catch (error) {
       console.log('Could not fetch associate:', assoc.id);
       return null;
@@ -340,11 +359,13 @@ function createFieldNoteLink(note) {
 
 /**
  * Create HTML for an associate link
- * @param {Object} associate
- * @param {string|null} relation
+ * @param {Object} associate - The associate specimen data
+ * @param {string|null} relation - The relation label
+ * @param {string} direction - 'outgoing' (we listed them) or 'incoming' (they listed us)
+ * @param {string|null} incomingRelation - If mutual, their relation label for us
  * @returns {string}
  */
-function createAssociateLink(associate, relation) {
+function createAssociateLink(associate, relation, direction, incomingRelation) {
   const avatar = associate.mugshot || 'data:image/svg+xml,' + encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
       <rect fill="#1a1a1a" width="30" height="30"/>
@@ -352,13 +373,27 @@ function createAssociateLink(associate, relation) {
     </svg>
   `);
 
-  const relationBadge = relation ? `<span class="associate-link__relation">${escapeHtml(relation)}</span>` : '';
+  let relationHtml = '';
+
+  if (direction === 'outgoing' && incomingRelation) {
+    // Mutual relationship with possibly different labels
+    if (relation) {
+      relationHtml += `<span class="associate-link__relation associate-link__relation--outgoing" title="How this specimen views them">→ ${escapeHtml(relation)}</span>`;
+    }
+    relationHtml += `<span class="associate-link__relation associate-link__relation--incoming" title="How they view this specimen">← ${escapeHtml(incomingRelation)}</span>`;
+  } else if (direction === 'outgoing' && relation) {
+    // We listed them with a relation
+    relationHtml = `<span class="associate-link__relation associate-link__relation--outgoing" title="How this specimen views them">→ ${escapeHtml(relation)}</span>`;
+  } else if (direction === 'incoming' && relation) {
+    // They listed us with a relation
+    relationHtml = `<span class="associate-link__relation associate-link__relation--incoming" title="How they view this specimen">← ${escapeHtml(relation)}</span>`;
+  }
 
   return `
     <a href="specimen.html?id=${associate.id}" class="associate-link">
       <img src="${avatar}" alt="${associate.name}" class="associate-link__avatar">
       <span>${escapeHtml(associate.codename || associate.name || 'Unknown')}</span>
-      ${relationBadge}
+      ${relationHtml}
     </a>
   `;
 }

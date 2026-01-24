@@ -575,6 +575,17 @@ a:hover {
   background: var(--electric-blue);
   color: var(--bg-darker);
   margin-left: 5px;
+  cursor: help;
+}
+
+.associate-link__relation--outgoing {
+  background: var(--cyber-green);
+  color: var(--bg-darker);
+}
+
+.associate-link__relation--incoming {
+  background: var(--neon-yellow);
+  color: var(--bg-darker);
 }
 
 /* Field Notes List on Specimen Page */

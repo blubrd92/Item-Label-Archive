@@ -199,7 +199,7 @@ async function renderDossier(specimen) {
   }
 
   // Transcripts
-  renderTranscripts(specimen);
+  await renderTranscripts(specimen);
 
   // Metadata
   document.getElementById('meta-created').textContent = formatTimestamp(specimen.createdAt);
@@ -364,34 +364,61 @@ function createFieldNoteLink(note) {
  * Render interview transcripts section
  * @param {Object} specimen
  */
-function renderTranscripts(specimen) {
+async function renderTranscripts(specimen) {
   const panel = document.getElementById('transcripts-panel');
   const container = document.getElementById('specimen-transcripts');
 
-  if (!specimen.transcripts || specimen.transcripts.length === 0) {
-    return;
+  try {
+    // Query transcripts collection for transcripts that include this specimen
+    const transcriptsQuery = await db.collection('transcripts')
+      .where('relatedSpecimens', 'array-contains', specimen.id)
+      .get();
+
+    if (transcriptsQuery.empty) {
+      return;
+    }
+
+    panel.classList.remove('hidden');
+
+    const transcripts = [];
+    transcriptsQuery.forEach(doc => {
+      transcripts.push({ id: doc.id, ...doc.data() });
+    });
+
+    container.innerHTML = transcripts.map((transcript, index) => {
+      const dateDisplay = transcript.date
+        ? `<span class="transcript__date">${transcript.date}</span>`
+        : '';
+
+      // Show other specimens involved
+      const otherSpecimens = (transcript.relatedSpecimens || []).filter(id => id !== specimen.id);
+      const othersLabel = otherSpecimens.length > 0
+        ? `<span class="transcript__others">(+${otherSpecimens.length} other${otherSpecimens.length > 1 ? 's' : ''})</span>`
+        : '';
+
+      // Admin edit link
+      const editLink = isAdmin
+        ? `<a href="admin.html?editTranscript=${transcript.id}" class="transcript__edit" title="Edit transcript">✎</a>`
+        : '';
+
+      return `
+        <div class="transcript">
+          <div class="transcript__header" onclick="toggleTranscript(${index})">
+            <span class="transcript__title">${escapeHtml(transcript.title)}</span>
+            ${othersLabel}
+            ${dateDisplay}
+            ${editLink}
+            <span class="transcript__toggle" id="transcript-toggle-${index}">▼</span>
+          </div>
+          <div class="transcript__content hidden" id="transcript-content-${index}">
+            ${parseRedactedText(transcript.content)}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.log('Could not fetch transcripts:', error.message);
   }
-
-  panel.classList.remove('hidden');
-
-  container.innerHTML = specimen.transcripts.map((transcript, index) => {
-    const dateDisplay = transcript.date
-      ? `<span class="transcript__date">${transcript.date}</span>`
-      : '';
-
-    return `
-      <div class="transcript">
-        <div class="transcript__header" onclick="toggleTranscript(${index})">
-          <span class="transcript__title">${escapeHtml(transcript.title)}</span>
-          ${dateDisplay}
-          <span class="transcript__toggle" id="transcript-toggle-${index}">▼</span>
-        </div>
-        <div class="transcript__content hidden" id="transcript-content-${index}">
-          ${parseRedactedText(transcript.content)}
-        </div>
-      </div>
-    `;
-  }).join('');
 }
 
 /**

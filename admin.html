@@ -73,6 +73,7 @@
         <div class="admin-tabs">
           <button class="admin-tab admin-tab--active" id="tab-specimens" onclick="switchTab('specimens')">Specimens</button>
           <button class="admin-tab" id="tab-fieldnotes" onclick="switchTab('fieldnotes')">Field Notes</button>
+          <button class="admin-tab" id="tab-transcripts" onclick="switchTab('transcripts')">Transcripts</button>
         </div>
 
         <!-- Specimens Sidebar Content -->
@@ -118,6 +119,29 @@
 
           <p class="hidden" id="no-fieldnotes" style="color: #555; text-align: center; padding: 20px;">
             No field notes in database.
+          </p>
+        </div>
+
+        <!-- Transcripts Sidebar Content -->
+        <div id="transcripts-sidebar" class="hidden">
+          <div style="margin: 15px 0;">
+            <button class="btn btn--primary" style="width: 100%;" onclick="showNewTranscriptForm()">
+              + Add Transcript
+            </button>
+          </div>
+
+          <h3 style="color: var(--neon-yellow); margin-bottom: 15px; font-size: 0.9rem;">INTERVIEW TRANSCRIPTS</h3>
+
+          <div class="loading hidden" id="transcripts-sidebar-loading">
+            <div class="loading__spinner" style="width: 30px; height: 30px;"></div>
+          </div>
+
+          <ul class="admin-list" id="transcripts-list">
+            <!-- Transcript list items will be inserted here -->
+          </ul>
+
+          <p class="hidden" id="no-transcripts" style="color: #555; text-align: center; padding: 20px;">
+            No transcripts in database.
           </p>
         </div>
       </aside>
@@ -280,33 +304,19 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
               </div>
             </div>
 
-            <!-- Interview Transcripts Section -->
+            <!-- Linked Transcripts Section -->
             <div class="panel">
-              <div class="panel__title">/// INTERVIEW TRANSCRIPTS (OPTIONAL) ///</div>
+              <div class="panel__title">/// LINKED TRANSCRIPTS ///</div>
               <div class="panel__content">
                 <p style="color: #555; font-size: 0.85rem; margin-bottom: 15px;">
-                  Add interview logs, interrogation records, or other documented interactions.
+                  Transcripts involving this specimen. Manage transcripts in the Transcripts tab.
                 </p>
-                <div class="form-group">
-                  <label class="form-label">Transcript Title</label>
-                  <input type="text" class="form-input" id="transcript-title" placeholder="e.g., Initial Interrogation, Follow-up Interview">
+                <div id="specimen-linked-transcripts">
+                  <p style="color: #555; font-style: italic;">Save specimen first to see linked transcripts.</p>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Date (Optional)</label>
-                  <input type="date" class="form-input" id="transcript-date">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Transcript Content</label>
-                  <textarea class="form-textarea" id="transcript-content" placeholder="AGENT: State your name for the record.
-SPECIMEN: [REDACTED:My name is classified].
-AGENT: Where were you on the night of...
-
-Use [REDACTED:text] for classified portions."></textarea>
-                </div>
-                <button type="button" class="btn btn--secondary" onclick="addTranscript()">Add Transcript</button>
-                <div id="transcripts-container" class="mt-2">
-                  <!-- Added transcripts will appear here -->
-                </div>
+                <button type="button" class="btn btn--secondary mt-1 hidden" id="add-transcript-btn" onclick="createTranscriptForSpecimen()">
+                  + Create Transcript for This Specimen
+                </button>
               </div>
             </div>
 
@@ -413,6 +423,77 @@ Example: The organization was founded in [REDACTED:1947] by [REDACTED:Agent Quac
             </div>
           </form>
         </div>
+
+        <!-- Transcript Form -->
+        <div class="hidden" id="transcript-form-container">
+          <h2 id="transcript-form-title" style="color: var(--neon-yellow); margin-bottom: 20px;">ADD TRANSCRIPT</h2>
+
+          <form id="transcript-form">
+            <input type="hidden" id="transcript-id">
+
+            <!-- Basic Info Section -->
+            <div class="panel">
+              <div class="panel__title">/// TRANSCRIPT DETAILS ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label" for="transcript-title">Title *</label>
+                  <input type="text" class="form-input" id="transcript-title" required placeholder="e.g., Initial Interrogation, Joint Interview">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="transcript-date">Date (Optional)</label>
+                  <input type="date" class="form-input" id="transcript-date">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="transcript-content">Transcript Content *</label>
+                  <textarea class="form-textarea" id="transcript-content" required style="min-height: 250px;" placeholder="AGENT: State your name for the record.
+SPECIMEN A: [REDACTED:My name is classified].
+SPECIMEN B: I am known as...
+AGENT: Where were you on the night of...
+
+Use [REDACTED:text] for classified portions."></textarea>
+                  <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">
+                    Tip: Use <code style="color: var(--hot-pink);">[REDACTED:text]</code> to hide sensitive information
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Involved Specimens Section -->
+            <div class="panel">
+              <div class="panel__title">/// INVOLVED SPECIMENS ///</div>
+              <div class="panel__content">
+                <p style="color: #555; font-size: 0.85rem; margin-bottom: 15px;">
+                  Select all specimens that appear in or are relevant to this transcript.
+                </p>
+                <div class="form-group">
+                  <label class="form-label">Link to Specimens</label>
+                  <select class="form-select" id="transcript-specimens-select">
+                    <option value="">-- Select a specimen --</option>
+                  </select>
+                  <button type="button" class="btn btn--secondary mt-1" onclick="addTranscriptSpecimen()">Add Specimen</button>
+                  <div class="tag-container mt-1" id="transcript-specimens-container">
+                    <!-- Linked specimen tags will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-2 mt-3">
+              <button type="submit" class="btn btn--primary" id="transcript-submit-btn">
+                Save Transcript
+              </button>
+              <button type="button" class="btn btn--secondary" onclick="cancelTranscriptForm()">
+                Cancel
+              </button>
+              <button type="button" class="btn btn--danger hidden" id="transcript-delete-btn" onclick="deleteTranscript()">
+                Delete Transcript
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
   </main>
@@ -454,6 +535,27 @@ Example: The organization was founded in [REDACTED:1947] by [REDACTED:Agent Quac
         <div class="flex gap-2 flex-center">
           <button class="btn btn--danger" onclick="confirmDeleteNote()">Delete Forever</button>
           <button class="btn btn--secondary" onclick="closeDeleteNoteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal (Transcripts) -->
+  <div class="modal-overlay" id="delete-transcript-modal">
+    <div class="modal">
+      <div class="modal__header" style="background: var(--warning-red);">
+        <span>CONFIRM DELETION</span>
+        <button class="modal__close" onclick="closeDeleteTranscriptModal()">&times;</button>
+      </div>
+      <div class="modal__body text-center">
+        <p style="color: var(--warning-red); font-size: 1.2rem; margin-bottom: 20px;">
+          Are you sure you want to permanently delete this transcript?
+        </p>
+        <p style="color: var(--neon-yellow); margin-bottom: 30px;" id="delete-transcript-name"></p>
+        <p style="color: #555; margin-bottom: 30px;">This action cannot be undone.</p>
+        <div class="flex gap-2 flex-center">
+          <button class="btn btn--danger" onclick="confirmDeleteTranscript()">Delete Forever</button>
+          <button class="btn btn--secondary" onclick="closeDeleteTranscriptModal()">Cancel</button>
         </div>
       </div>
     </div>

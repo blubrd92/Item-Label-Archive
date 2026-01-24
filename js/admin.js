@@ -29,8 +29,21 @@ const noteSubmitBtn = document.getElementById('note-submit-btn');
 // DOM Elements - Tabs and Sidebars
 const tabSpecimens = document.getElementById('tab-specimens');
 const tabFieldnotes = document.getElementById('tab-fieldnotes');
+const tabTranscripts = document.getElementById('tab-transcripts');
 const specimensSidebar = document.getElementById('specimens-sidebar');
 const fieldnotesSidebar = document.getElementById('fieldnotes-sidebar');
+const transcriptsSidebar = document.getElementById('transcripts-sidebar');
+
+// DOM Elements - Transcripts
+const transcriptsList = document.getElementById('transcripts-list');
+const noTranscripts = document.getElementById('no-transcripts');
+const transcriptsSidebarLoading = document.getElementById('transcripts-sidebar-loading');
+const transcriptFormContainer = document.getElementById('transcript-form-container');
+const transcriptForm = document.getElementById('transcript-form');
+const transcriptFormTitle = document.getElementById('transcript-form-title');
+const transcriptDeleteBtn = document.getElementById('transcript-delete-btn');
+const transcriptSubmitBtn = document.getElementById('transcript-submit-btn');
+const deleteTranscriptModal = document.getElementById('delete-transcript-modal');
 
 // Modal elements
 const deleteModal = document.getElementById('delete-modal');
@@ -41,14 +54,17 @@ const uploadStatus = document.getElementById('upload-status');
 // Data
 let allSpecimens = [];
 let allFieldNotes = [];
+let allTranscripts = [];
 let currentEditId = null;
 let currentNoteEditId = null;
+let currentTranscriptEditId = null;
 let abilities = [];
 let associates = [];
-let transcripts = [];
+let transcriptSpecimens = [];
 let relatedSpecimens = [];
 let unsubscribeSpecimens = null;
 let unsubscribeNotes = null;
+let unsubscribeTranscripts = null;
 let currentTab = 'specimens';
 
 /**
@@ -65,6 +81,7 @@ function initAdmin() {
   // Set up real-time listeners
   setupSpecimenListener();
   setupFieldNotesListener();
+  setupTranscriptsListener();
 
   // Set up form handlers
   setupFormHandlers();
@@ -104,11 +121,36 @@ function checkUrlParameters() {
       }
     }, 100);
   }
+
+  // Check for transcript edit
+  const editTranscriptId = urlParams.get('editTranscript');
+  if (editTranscriptId) {
+    // Wait for transcripts to load, then edit
+    const checkTranscripts = setInterval(() => {
+      if (allTranscripts.length > 0 || (transcriptsSidebarLoading && transcriptsSidebarLoading.classList.contains('hidden'))) {
+        clearInterval(checkTranscripts);
+        switchTab('transcripts');
+        editTranscript(editTranscriptId);
+      }
+    }, 100);
+  }
+
+  // Check for creating transcript for specific specimen
+  const forSpecimen = urlParams.get('newTranscriptFor');
+  if (forSpecimen) {
+    const checkReady = setInterval(() => {
+      if (allSpecimens.length > 0) {
+        clearInterval(checkReady);
+        switchTab('transcripts');
+        showNewTranscriptForm(forSpecimen);
+      }
+    }, 100);
+  }
 }
 
 /**
  * Switch between tabs
- * @param {string} tab - 'specimens' or 'fieldnotes'
+ * @param {string} tab - 'specimens', 'fieldnotes', or 'transcripts'
  */
 function switchTab(tab) {
   currentTab = tab;
@@ -116,23 +158,28 @@ function switchTab(tab) {
   // Update tab styles
   tabSpecimens.classList.toggle('admin-tab--active', tab === 'specimens');
   tabFieldnotes.classList.toggle('admin-tab--active', tab === 'fieldnotes');
+  if (tabTranscripts) tabTranscripts.classList.toggle('admin-tab--active', tab === 'transcripts');
 
   // Show/hide sidebars
   specimensSidebar.classList.toggle('hidden', tab !== 'specimens');
   fieldnotesSidebar.classList.toggle('hidden', tab !== 'fieldnotes');
+  if (transcriptsSidebar) transcriptsSidebar.classList.toggle('hidden', tab !== 'transcripts');
 
   // Hide all forms, show welcome
   formContainer.classList.add('hidden');
   noteFormContainer.classList.add('hidden');
+  if (transcriptFormContainer) transcriptFormContainer.classList.add('hidden');
   welcomeMessage.classList.remove('hidden');
 
   // Reset edit states
   currentEditId = null;
   currentNoteEditId = null;
+  currentTranscriptEditId = null;
 
   // Re-render lists to clear active states
   renderSpecimenList();
   renderFieldNotesList();
+  renderTranscriptsList();
 }
 
 /**
@@ -200,6 +247,40 @@ function setupFieldNotesListener() {
 }
 
 /**
+ * Set up real-time Firestore listener for transcripts
+ */
+function setupTranscriptsListener() {
+  if (transcriptsSidebarLoading) {
+    transcriptsSidebarLoading.classList.remove('hidden');
+  }
+
+  unsubscribeTranscripts = db.collection('transcripts')
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(
+      (snapshot) => {
+        allTranscripts = [];
+        snapshot.forEach((doc) => {
+          allTranscripts.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+
+        renderTranscriptsList();
+        if (transcriptsSidebarLoading) {
+          transcriptsSidebarLoading.classList.add('hidden');
+        }
+      },
+      (error) => {
+        console.error('Error fetching transcripts:', error);
+        if (transcriptsSidebarLoading) {
+          transcriptsSidebarLoading.classList.add('hidden');
+        }
+      }
+    );
+}
+
+/**
  * Render specimen list in sidebar
  */
 function renderSpecimenList() {
@@ -255,6 +336,49 @@ function renderFieldNotesList() {
 }
 
 /**
+ * Render transcripts list in sidebar
+ */
+function renderTranscriptsList() {
+  if (!transcriptsList) return;
+
+  if (allTranscripts.length === 0) {
+    transcriptsList.innerHTML = '';
+    if (noTranscripts) noTranscripts.classList.remove('hidden');
+    return;
+  }
+
+  if (noTranscripts) noTranscripts.classList.add('hidden');
+
+  transcriptsList.innerHTML = allTranscripts.map(transcript => {
+    const specimenCount = (transcript.relatedSpecimens || []).length;
+    const countLabel = specimenCount === 1 ? '1 specimen' : `${specimenCount} specimens`;
+
+    return `
+      <li class="admin-list__item ${currentTranscriptEditId === transcript.id ? 'admin-list__item--active' : ''}"
+          onclick="editTranscript('${transcript.id}')">
+        <span>${escapeHtml(transcript.title || 'Untitled')}</span>
+        <span style="font-size: 0.7rem; color: var(--electric-blue);">
+          ${countLabel}
+        </span>
+      </li>
+    `;
+  }).join('');
+}
+
+/**
+ * Populate transcript specimens dropdown
+ */
+function populateTranscriptSpecimensDropdown() {
+  const select = document.getElementById('transcript-specimens-select');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-- Select a specimen --</option>' +
+    allSpecimens
+      .map(s => `<option value="${s.id}">${escapeHtml(s.name || s.codename || s.id)}</option>`)
+      .join('');
+}
+
+/**
  * Populate associates dropdown with existing specimens
  */
 function populateAssociatesDropdown() {
@@ -293,6 +417,11 @@ function setupFormHandlers() {
   // Field note form submission
   if (fieldnoteForm) {
     fieldnoteForm.addEventListener('submit', handleNoteFormSubmit);
+  }
+
+  // Transcript form submission
+  if (transcriptForm) {
+    transcriptForm.addEventListener('submit', handleTranscriptFormSubmit);
   }
 
   // Mugshot file upload
@@ -421,7 +550,6 @@ function showNewForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
-  transcripts = [];
 
   formTitle.textContent = 'FILE NEW REPORT';
   deleteBtn.classList.add('hidden');
@@ -431,11 +559,19 @@ function showNewForm() {
   clearFormPreviews();
   renderAbilities();
   renderAssociates();
-  renderTranscripts();
   populateAssociatesDropdown();
+
+  // Reset linked transcripts display
+  const linkedContainer = document.getElementById('specimen-linked-transcripts');
+  const addBtn = document.getElementById('add-transcript-btn');
+  if (linkedContainer) {
+    linkedContainer.innerHTML = '<p style="color: #555; font-style: italic;">Save specimen first to link transcripts.</p>';
+  }
+  if (addBtn) addBtn.classList.add('hidden');
 
   welcomeMessage.classList.add('hidden');
   noteFormContainer.classList.add('hidden');
+  if (transcriptFormContainer) transcriptFormContainer.classList.add('hidden');
   formContainer.classList.remove('hidden');
 
   renderSpecimenList();
@@ -450,7 +586,6 @@ async function editSpecimen(id) {
 
   currentEditId = id;
   abilities = specimen.specialAbilities || [];
-  transcripts = specimen.transcripts || [];
 
   // Handle both old format (array of strings) and new format (array of objects)
   const rawAssociates = specimen.knownAssociates || [];
@@ -509,11 +644,14 @@ async function editSpecimen(id) {
 
   renderAbilities();
   renderAssociates();
-  renderTranscripts();
   populateAssociatesDropdown();
+
+  // Load linked transcripts from the shared collection
+  loadLinkedTranscripts(id);
 
   welcomeMessage.classList.add('hidden');
   noteFormContainer.classList.add('hidden');
+  if (transcriptFormContainer) transcriptFormContainer.classList.add('hidden');
   formContainer.classList.remove('hidden');
 
   renderSpecimenList();
@@ -624,72 +762,248 @@ function renderAssociates() {
   }).join('');
 }
 
+// ============================================
+// TRANSCRIPT CRUD (Shared Collection)
+// ============================================
+
 /**
- * Add transcript to list
+ * Show new transcript form
+ * @param {string} preselectedSpecimenId - Optional specimen to pre-select
  */
-function addTranscript() {
-  const titleInput = document.getElementById('transcript-title');
-  const dateInput = document.getElementById('transcript-date');
-  const contentInput = document.getElementById('transcript-content');
+function showNewTranscriptForm(preselectedSpecimenId) {
+  currentTranscriptEditId = null;
+  transcriptSpecimens = preselectedSpecimenId ? [preselectedSpecimenId] : [];
 
-  const title = titleInput.value.trim();
-  const content = contentInput.value.trim();
+  transcriptFormTitle.textContent = 'ADD TRANSCRIPT';
+  transcriptDeleteBtn.classList.add('hidden');
+  transcriptSubmitBtn.textContent = 'Save Transcript';
 
-  if (!title || !content) {
-    alert('Please enter both a title and content for the transcript.');
-    return;
+  transcriptForm.reset();
+  renderTranscriptSpecimens();
+  populateTranscriptSpecimensDropdown();
+
+  welcomeMessage.classList.add('hidden');
+  formContainer.classList.add('hidden');
+  noteFormContainer.classList.add('hidden');
+  transcriptFormContainer.classList.remove('hidden');
+
+  renderTranscriptsList();
+}
+
+/**
+ * Edit existing transcript
+ */
+async function editTranscript(id) {
+  const transcript = allTranscripts.find(t => t.id === id);
+  if (!transcript) return;
+
+  currentTranscriptEditId = id;
+  transcriptSpecimens = transcript.relatedSpecimens || [];
+
+  transcriptFormTitle.textContent = 'EDIT TRANSCRIPT';
+  transcriptDeleteBtn.classList.remove('hidden');
+  transcriptSubmitBtn.textContent = 'Update Transcript';
+
+  document.getElementById('transcript-id').value = id;
+  document.getElementById('transcript-title').value = transcript.title || '';
+  document.getElementById('transcript-date').value = transcript.date || '';
+  document.getElementById('transcript-content').value = transcript.content || '';
+
+  renderTranscriptSpecimens();
+  populateTranscriptSpecimensDropdown();
+
+  welcomeMessage.classList.add('hidden');
+  formContainer.classList.add('hidden');
+  noteFormContainer.classList.add('hidden');
+  transcriptFormContainer.classList.remove('hidden');
+
+  renderTranscriptsList();
+}
+
+/**
+ * Add specimen to transcript
+ */
+function addTranscriptSpecimen() {
+  const select = document.getElementById('transcript-specimens-select');
+  const id = select.value;
+
+  if (id && !transcriptSpecimens.includes(id)) {
+    transcriptSpecimens.push(id);
+    renderTranscriptSpecimens();
   }
 
-  transcripts.push({
-    title: title,
-    date: dateInput.value || null,
-    content: content
-  });
-
-  // Clear inputs
-  titleInput.value = '';
-  dateInput.value = '';
-  contentInput.value = '';
-
-  renderTranscripts();
+  select.value = '';
 }
 
 /**
- * Remove transcript from list
+ * Remove specimen from transcript
  */
-function removeTranscript(index) {
-  transcripts.splice(index, 1);
-  renderTranscripts();
+function removeTranscriptSpecimen(index) {
+  transcriptSpecimens.splice(index, 1);
+  renderTranscriptSpecimens();
 }
 
 /**
- * Render transcripts in form
+ * Render transcript specimens tags
  */
-function renderTranscripts() {
-  const container = document.getElementById('transcripts-container');
+function renderTranscriptSpecimens() {
+  const container = document.getElementById('transcript-specimens-container');
   if (!container) return;
 
-  if (transcripts.length === 0) {
-    container.innerHTML = '<p style="color: #555; font-style: italic;">No transcripts added yet.</p>';
+  container.innerHTML = transcriptSpecimens.map((id, index) => {
+    const specimen = allSpecimens.find(s => s.id === id);
+    const name = specimen ? (specimen.name || specimen.codename || id) : id;
+
+    return `
+      <span class="tag">
+        ${escapeHtml(name)}
+        <span class="tag__remove" onclick="removeTranscriptSpecimen(${index})">&times;</span>
+      </span>
+    `;
+  }).join('');
+}
+
+/**
+ * Handle transcript form submission
+ */
+async function handleTranscriptFormSubmit(e) {
+  e.preventDefault();
+
+  if (transcriptSpecimens.length === 0) {
+    alert('Please add at least one specimen to this transcript.');
     return;
   }
 
-  container.innerHTML = transcripts.map((transcript, index) => {
-    const dateDisplay = transcript.date ? ` <span style="color: #555;">(${transcript.date})</span>` : '';
-    const preview = transcript.content.substring(0, 100).replace(/\n/g, ' ');
+  const transcriptData = {
+    title: document.getElementById('transcript-title').value.trim(),
+    date: document.getElementById('transcript-date').value || null,
+    content: document.getElementById('transcript-content').value.trim(),
+    relatedSpecimens: transcriptSpecimens,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
 
-    return `
-      <div class="transcript-item" style="background: rgba(0,255,255,0.1); border: 2px solid var(--electric-blue); padding: 15px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: start;">
-          <div>
-            <strong style="color: var(--neon-yellow);">${escapeHtml(transcript.title)}</strong>${dateDisplay}
-            <p style="color: var(--cyber-green); font-size: 0.85rem; margin-top: 8px;">${escapeHtml(preview)}${transcript.content.length > 100 ? '...' : ''}</p>
-          </div>
-          <button type="button" class="tag__remove" style="color: var(--warning-red); font-size: 1.2rem; background: none; border: none; cursor: pointer;" onclick="removeTranscript(${index})">&times;</button>
+  transcriptSubmitBtn.disabled = true;
+  transcriptSubmitBtn.textContent = 'Saving...';
+
+  try {
+    if (currentTranscriptEditId) {
+      await db.collection('transcripts').doc(currentTranscriptEditId).update(transcriptData);
+      console.log('Transcript updated:', currentTranscriptEditId);
+    } else {
+      transcriptData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      transcriptData.agentNumber = generateAgentNumber();
+
+      const docRef = await db.collection('transcripts').add(transcriptData);
+      console.log('New transcript created:', docRef.id);
+      currentTranscriptEditId = docRef.id;
+    }
+
+    alert('Transcript saved successfully!');
+    cancelTranscriptForm();
+
+  } catch (error) {
+    console.error('Error saving transcript:', error);
+    alert('Failed to save transcript: ' + error.message);
+  } finally {
+    transcriptSubmitBtn.disabled = false;
+    transcriptSubmitBtn.textContent = currentTranscriptEditId ? 'Update Transcript' : 'Save Transcript';
+  }
+}
+
+/**
+ * Cancel transcript form
+ */
+function cancelTranscriptForm() {
+  currentTranscriptEditId = null;
+  transcriptSpecimens = [];
+
+  transcriptForm.reset();
+
+  transcriptFormContainer.classList.add('hidden');
+  welcomeMessage.classList.remove('hidden');
+
+  renderTranscriptsList();
+}
+
+/**
+ * Open delete transcript modal
+ */
+function deleteTranscript() {
+  if (!currentTranscriptEditId) return;
+
+  const transcript = allTranscripts.find(t => t.id === currentTranscriptEditId);
+  document.getElementById('delete-transcript-name').textContent = transcript?.title || currentTranscriptEditId;
+
+  deleteTranscriptModal.classList.add('active');
+}
+
+/**
+ * Close delete transcript modal
+ */
+function closeDeleteTranscriptModal() {
+  deleteTranscriptModal.classList.remove('active');
+}
+
+/**
+ * Confirm transcript deletion
+ */
+async function confirmDeleteTranscript() {
+  if (!currentTranscriptEditId) return;
+
+  closeDeleteTranscriptModal();
+
+  try {
+    await db.collection('transcripts').doc(currentTranscriptEditId).delete();
+    console.log('Transcript deleted:', currentTranscriptEditId);
+    alert('Transcript has been permanently deleted.');
+    cancelTranscriptForm();
+  } catch (error) {
+    console.error('Error deleting transcript:', error);
+    alert('Failed to delete transcript: ' + error.message);
+  }
+}
+
+/**
+ * Create transcript for specimen (from specimen edit form)
+ */
+function createTranscriptForSpecimen() {
+  if (!currentEditId) return;
+  window.location.href = `admin.html?newTranscriptFor=${currentEditId}`;
+}
+
+/**
+ * Load and display linked transcripts in specimen form
+ */
+async function loadLinkedTranscripts(specimenId) {
+  const container = document.getElementById('specimen-linked-transcripts');
+  const addBtn = document.getElementById('add-transcript-btn');
+  if (!container) return;
+
+  // Find transcripts that include this specimen
+  const linkedTranscripts = allTranscripts.filter(t =>
+    (t.relatedSpecimens || []).includes(specimenId)
+  );
+
+  if (linkedTranscripts.length === 0) {
+    container.innerHTML = '<p style="color: #555; font-style: italic;">No transcripts linked to this specimen.</p>';
+  } else {
+    container.innerHTML = linkedTranscripts.map(t => {
+      const specimenCount = (t.relatedSpecimens || []).length;
+      const countLabel = specimenCount > 1 ? ` (+${specimenCount - 1} other${specimenCount > 2 ? 's' : ''})` : '';
+
+      return `
+        <div style="background: rgba(0,255,255,0.1); border: 2px solid var(--electric-blue); padding: 10px; margin-bottom: 8px;">
+          <a href="admin.html?editTranscript=${t.id}" style="color: var(--neon-yellow); font-weight: bold;">
+            ${escapeHtml(t.title)}
+          </a>
+          <span style="color: #555; font-size: 0.8rem;">${countLabel}</span>
+          ${t.date ? `<span style="color: var(--hot-pink); font-size: 0.8rem; margin-left: 10px;">${t.date}</span>` : ''}
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
+
+  if (addBtn) addBtn.classList.remove('hidden');
 }
 
 /**
@@ -724,7 +1038,6 @@ async function handleFormSubmit(e) {
     additionalPhotos: additionalUrls,
     specialAbilities: abilities,
     knownAssociates: associates,
-    transcripts: transcripts,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -763,7 +1076,6 @@ function cancelForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
-  transcripts = [];
 
   specimenForm.reset();
   clearFormPreviews();
@@ -1078,5 +1390,8 @@ window.addEventListener('beforeunload', () => {
   }
   if (unsubscribeNotes) {
     unsubscribeNotes();
+  }
+  if (unsubscribeTranscripts) {
+    unsubscribeTranscripts();
   }
 });

@@ -662,6 +662,27 @@ a:hover {
   font-size: 0.8rem;
 }
 
+.transcript__others {
+  font-size: 0.75rem;
+  color: var(--hot-pink);
+  padding: 2px 8px;
+  background: rgba(255, 0, 255, 0.15);
+  border: 1px solid var(--hot-pink);
+}
+
+.transcript__edit {
+  color: var(--neon-yellow);
+  font-size: 1rem;
+  padding: 2px 8px;
+  margin-left: auto;
+  transition: all 0.2s ease;
+}
+
+.transcript__edit:hover {
+  color: var(--cyber-green);
+  text-shadow: 0 0 10px var(--cyber-green);
+}
+
 .transcript__content {
   padding: 20px;
   color: var(--cyber-green);

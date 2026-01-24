@@ -60,6 +60,7 @@ let currentNoteEditId = null;
 let currentTranscriptEditId = null;
 let abilities = [];
 let associates = [];
+let linkedFieldNotes = [];
 let transcriptSpecimens = [];
 let relatedSpecimens = [];
 let unsubscribeSpecimens = null;
@@ -233,6 +234,7 @@ function setupFieldNotesListener() {
         });
 
         renderFieldNotesList();
+        populateFieldNotesDropdown();
         if (notesSidebarLoading) {
           notesSidebarLoading.classList.add('hidden');
         }
@@ -408,6 +410,26 @@ function populateNoteSpecimensDropdown() {
 }
 
 /**
+ * Populate field notes dropdown for specimen form
+ */
+function populateFieldNotesDropdown() {
+  const select = document.getElementById('fieldnotes-select');
+  if (!select) return;
+
+  const categoryLabels = {
+    'ORGANIZATION': '[ORG]',
+    'LOCATION': '[LOC]',
+    'SPECIES': '[SPE]',
+    'OTHER': '[OTH]'
+  };
+
+  select.innerHTML = '<option value="">-- Select a field note --</option>' +
+    allFieldNotes
+      .map(n => `<option value="${n.id}">${categoryLabels[n.category] || ''} ${escapeHtml(n.title || n.id)}</option>`)
+      .join('');
+}
+
+/**
  * Set up form event handlers
  */
 function setupFormHandlers() {
@@ -550,6 +572,7 @@ function showNewForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
+  linkedFieldNotes = [];
 
   formTitle.textContent = 'FILE NEW REPORT';
   deleteBtn.classList.add('hidden');
@@ -559,7 +582,9 @@ function showNewForm() {
   clearFormPreviews();
   renderAbilities();
   renderAssociates();
+  renderLinkedFieldNotes();
   populateAssociatesDropdown();
+  populateFieldNotesDropdown();
 
   // Reset linked transcripts display
   const linkedContainer = document.getElementById('specimen-linked-transcripts');
@@ -645,6 +670,13 @@ async function editSpecimen(id) {
   renderAbilities();
   renderAssociates();
   populateAssociatesDropdown();
+
+  // Load linked field notes (field notes that have this specimen in their relatedSpecimens)
+  linkedFieldNotes = allFieldNotes
+    .filter(note => (note.relatedSpecimens || []).includes(id))
+    .map(note => note.id);
+  renderLinkedFieldNotes();
+  populateFieldNotesDropdown();
 
   // Load linked transcripts from the shared collection
   loadLinkedTranscripts(id);
@@ -757,6 +789,58 @@ function renderAssociates() {
       <span class="tag">
         ${escapeHtml(name)}${relationDisplay}
         <span class="tag__remove" onclick="removeAssociate(${index})">&times;</span>
+      </span>
+    `;
+  }).join('');
+}
+
+/**
+ * Add linked field note to list
+ */
+function addLinkedFieldNote() {
+  const select = document.getElementById('fieldnotes-select');
+  const id = select.value;
+
+  if (id && !linkedFieldNotes.includes(id)) {
+    linkedFieldNotes.push(id);
+    renderLinkedFieldNotes();
+  }
+
+  select.value = '';
+}
+
+/**
+ * Remove linked field note from list
+ */
+function removeLinkedFieldNote(index) {
+  linkedFieldNotes.splice(index, 1);
+  renderLinkedFieldNotes();
+}
+
+/**
+ * Render linked field notes tags
+ */
+function renderLinkedFieldNotes() {
+  const container = document.getElementById('linked-fieldnotes-container');
+  if (!container) return;
+
+  const categoryColors = {
+    'ORGANIZATION': '#FF00FF',
+    'LOCATION': '#00FFFF',
+    'SPECIES': '#00FF00',
+    'OTHER': '#FFFF00'
+  };
+
+  container.innerHTML = linkedFieldNotes.map((id, index) => {
+    const note = allFieldNotes.find(n => n.id === id);
+    const title = note ? (note.title || id) : id;
+    const category = note ? note.category : 'OTHER';
+    const color = categoryColors[category] || '#00FF00';
+
+    return `
+      <span class="tag" style="border-color: ${color};">
+        ${escapeHtml(title)}
+        <span class="tag__remove" onclick="removeLinkedFieldNote(${index})">&times;</span>
       </span>
     `;
   }).join('');
@@ -1007,6 +1091,49 @@ async function loadLinkedTranscripts(specimenId) {
 }
 
 /**
+ * Update field notes' relatedSpecimens arrays based on current linkedFieldNotes
+ * @param {string} specimenId - The specimen ID to add/remove from field notes
+ */
+async function updateFieldNoteLinks(specimenId) {
+  // Find field notes that previously had this specimen
+  const previouslyLinked = allFieldNotes
+    .filter(note => (note.relatedSpecimens || []).includes(specimenId))
+    .map(note => note.id);
+
+  // Find notes to add specimen to (in linkedFieldNotes but not previously linked)
+  const toAdd = linkedFieldNotes.filter(id => !previouslyLinked.includes(id));
+
+  // Find notes to remove specimen from (previously linked but not in linkedFieldNotes)
+  const toRemove = previouslyLinked.filter(id => !linkedFieldNotes.includes(id));
+
+  // Add specimen to newly linked field notes
+  for (const noteId of toAdd) {
+    const note = allFieldNotes.find(n => n.id === noteId);
+    if (note) {
+      const updatedSpecimens = [...(note.relatedSpecimens || []), specimenId];
+      await db.collection('fieldNotes').doc(noteId).update({
+        relatedSpecimens: updatedSpecimens,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      console.log('Added specimen to field note:', noteId);
+    }
+  }
+
+  // Remove specimen from unlinked field notes
+  for (const noteId of toRemove) {
+    const note = allFieldNotes.find(n => n.id === noteId);
+    if (note) {
+      const updatedSpecimens = (note.relatedSpecimens || []).filter(id => id !== specimenId);
+      await db.collection('fieldNotes').doc(noteId).update({
+        relatedSpecimens: updatedSpecimens,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      console.log('Removed specimen from field note:', noteId);
+    }
+  }
+}
+
+/**
  * Handle specimen form submission
  */
 async function handleFormSubmit(e) {
@@ -1045,6 +1172,8 @@ async function handleFormSubmit(e) {
   submitBtn.textContent = 'Saving...';
 
   try {
+    let specimenId = currentEditId;
+
     if (currentEditId) {
       await db.collection('specimens').doc(currentEditId).update(specimenData);
       console.log('Specimen updated:', currentEditId);
@@ -1054,8 +1183,12 @@ async function handleFormSubmit(e) {
 
       const docRef = await db.collection('specimens').add(specimenData);
       console.log('New specimen created:', docRef.id);
+      specimenId = docRef.id;
       currentEditId = docRef.id;
     }
+
+    // Update field notes' relatedSpecimens arrays
+    await updateFieldNoteLinks(specimenId);
 
     alert('Specimen report saved successfully!');
     cancelForm();
@@ -1076,6 +1209,7 @@ function cancelForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
+  linkedFieldNotes = [];
 
   specimenForm.reset();
   clearFormPreviews();

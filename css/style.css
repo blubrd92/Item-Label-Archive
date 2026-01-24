@@ -1132,25 +1132,9 @@ a:hover {
   }
 
   /* Admin specific mobile */
-  .admin-tabs {
-    border-bottom: none;
-    border-left: 3px solid var(--cyber-green);
-    flex-direction: column;
-  }
-
   .admin-tab {
-    border-bottom: none;
-    border-left: 3px solid transparent;
-    margin-bottom: 0;
-    margin-left: -3px;
-    text-align: left;
     padding: 12px 15px;
     font-size: 0.8rem;
-  }
-
-  .admin-tab--active {
-    border-left-color: var(--neon-yellow);
-    border-bottom-color: transparent;
   }
 
   .admin-sidebar {
@@ -1539,10 +1523,10 @@ a:hover {
 /* Admin Tabs */
 .admin-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0;
   margin-bottom: 20px;
-  border-bottom: 3px solid var(--cyber-green);
+  border-left: 3px solid var(--cyber-green);
 }
 
 .admin-tab {
@@ -1556,10 +1540,9 @@ a:hover {
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -3px;
-  flex: 1;
-  text-align: center;
+  border-left: 3px solid transparent;
+  margin-left: -3px;
+  text-align: left;
   white-space: nowrap;
 }
 
@@ -1569,7 +1552,7 @@ a:hover {
 
 .admin-tab--active {
   background: rgba(0, 255, 0, 0.2);
-  border-bottom-color: var(--neon-yellow);
+  border-left-color: var(--neon-yellow);
   color: var(--neon-yellow);
 }
 

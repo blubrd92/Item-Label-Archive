@@ -304,6 +304,23 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
               </div>
             </div>
 
+            <!-- Linked Field Notes Section -->
+            <div class="panel">
+              <div class="panel__title">/// LINKED FIELD NOTES ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Link to Field Notes</label>
+                  <select class="form-select" id="fieldnotes-select">
+                    <option value="">-- Select a field note --</option>
+                  </select>
+                  <button type="button" class="btn btn--secondary mt-1" onclick="addLinkedFieldNote()">Add Field Note</button>
+                  <div class="tag-container mt-1" id="linked-fieldnotes-container">
+                    <!-- Linked field note tags will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Linked Transcripts Section -->
             <div class="panel">
               <div class="panel__title">/// LINKED TRANSCRIPTS ///</div>

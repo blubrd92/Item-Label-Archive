@@ -198,6 +198,9 @@ async function renderDossier(specimen) {
     notesEl.innerHTML = parseRedactedText(specimen.notes);
   }
 
+  // Transcripts
+  renderTranscripts(specimen);
+
   // Metadata
   document.getElementById('meta-created').textContent = formatTimestamp(specimen.createdAt);
   document.getElementById('meta-updated').textContent = formatTimestamp(specimen.updatedAt);
@@ -355,6 +358,57 @@ function createFieldNoteLink(note) {
       <span class="fieldnote-link__title">${escapeHtml(note.title || 'Untitled')}</span>
     </a>
   `;
+}
+
+/**
+ * Render interview transcripts section
+ * @param {Object} specimen
+ */
+function renderTranscripts(specimen) {
+  const panel = document.getElementById('transcripts-panel');
+  const container = document.getElementById('specimen-transcripts');
+
+  if (!specimen.transcripts || specimen.transcripts.length === 0) {
+    return;
+  }
+
+  panel.classList.remove('hidden');
+
+  container.innerHTML = specimen.transcripts.map((transcript, index) => {
+    const dateDisplay = transcript.date
+      ? `<span class="transcript__date">${transcript.date}</span>`
+      : '';
+
+    return `
+      <div class="transcript">
+        <div class="transcript__header" onclick="toggleTranscript(${index})">
+          <span class="transcript__title">${escapeHtml(transcript.title)}</span>
+          ${dateDisplay}
+          <span class="transcript__toggle" id="transcript-toggle-${index}">▼</span>
+        </div>
+        <div class="transcript__content hidden" id="transcript-content-${index}">
+          ${parseRedactedText(transcript.content)}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Toggle transcript visibility
+ * @param {number} index
+ */
+function toggleTranscript(index) {
+  const content = document.getElementById(`transcript-content-${index}`);
+  const toggle = document.getElementById(`transcript-toggle-${index}`);
+
+  if (content.classList.contains('hidden')) {
+    content.classList.remove('hidden');
+    toggle.textContent = '▲';
+  } else {
+    content.classList.add('hidden');
+    toggle.textContent = '▼';
+  }
 }
 
 /**

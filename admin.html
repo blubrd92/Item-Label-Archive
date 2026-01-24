@@ -280,6 +280,36 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
               </div>
             </div>
 
+            <!-- Interview Transcripts Section -->
+            <div class="panel">
+              <div class="panel__title">/// INTERVIEW TRANSCRIPTS (OPTIONAL) ///</div>
+              <div class="panel__content">
+                <p style="color: #555; font-size: 0.85rem; margin-bottom: 15px;">
+                  Add interview logs, interrogation records, or other documented interactions.
+                </p>
+                <div class="form-group">
+                  <label class="form-label">Transcript Title</label>
+                  <input type="text" class="form-input" id="transcript-title" placeholder="e.g., Initial Interrogation, Follow-up Interview">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Date (Optional)</label>
+                  <input type="date" class="form-input" id="transcript-date">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Transcript Content</label>
+                  <textarea class="form-textarea" id="transcript-content" placeholder="AGENT: State your name for the record.
+SPECIMEN: [REDACTED:My name is classified].
+AGENT: Where were you on the night of...
+
+Use [REDACTED:text] for classified portions."></textarea>
+                </div>
+                <button type="button" class="btn btn--secondary" onclick="addTranscript()">Add Transcript</button>
+                <div id="transcripts-container" class="mt-2">
+                  <!-- Added transcripts will appear here -->
+                </div>
+              </div>
+            </div>
+
             <!-- Form Actions -->
             <div class="flex gap-2 mt-3">
               <button type="submit" class="btn btn--primary" id="submit-btn">

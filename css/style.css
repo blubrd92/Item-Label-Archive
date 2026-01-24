@@ -622,6 +622,68 @@ a:hover {
   font-size: 0.85rem;
 }
 
+/* Interview Transcripts */
+.transcript {
+  border: 2px solid var(--electric-blue);
+  margin-bottom: 15px;
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.transcript__header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(0, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid var(--electric-blue);
+}
+
+.transcript__header:hover {
+  background: rgba(0, 255, 255, 0.2);
+}
+
+.transcript__title {
+  color: var(--neon-yellow);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+.transcript__date {
+  color: var(--hot-pink);
+  font-size: 0.85rem;
+}
+
+.transcript__toggle {
+  color: var(--cyber-green);
+  font-size: 0.8rem;
+}
+
+.transcript__content {
+  padding: 20px;
+  color: var(--cyber-green);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-family: "Courier New", monospace;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.transcript__content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.transcript__content::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+
+.transcript__content::-webkit-scrollbar-thumb {
+  background: var(--cyber-green);
+}
+
 /* Forms */
 .form-group {
   margin-bottom: 20px;

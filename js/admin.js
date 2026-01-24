@@ -45,6 +45,7 @@ let currentEditId = null;
 let currentNoteEditId = null;
 let abilities = [];
 let associates = [];
+let transcripts = [];
 let relatedSpecimens = [];
 let unsubscribeSpecimens = null;
 let unsubscribeNotes = null;
@@ -420,6 +421,7 @@ function showNewForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
+  transcripts = [];
 
   formTitle.textContent = 'FILE NEW REPORT';
   deleteBtn.classList.add('hidden');
@@ -429,6 +431,7 @@ function showNewForm() {
   clearFormPreviews();
   renderAbilities();
   renderAssociates();
+  renderTranscripts();
   populateAssociatesDropdown();
 
   welcomeMessage.classList.add('hidden');
@@ -447,6 +450,7 @@ async function editSpecimen(id) {
 
   currentEditId = id;
   abilities = specimen.specialAbilities || [];
+  transcripts = specimen.transcripts || [];
 
   // Handle both old format (array of strings) and new format (array of objects)
   const rawAssociates = specimen.knownAssociates || [];
@@ -505,6 +509,7 @@ async function editSpecimen(id) {
 
   renderAbilities();
   renderAssociates();
+  renderTranscripts();
   populateAssociatesDropdown();
 
   welcomeMessage.classList.add('hidden');
@@ -620,6 +625,74 @@ function renderAssociates() {
 }
 
 /**
+ * Add transcript to list
+ */
+function addTranscript() {
+  const titleInput = document.getElementById('transcript-title');
+  const dateInput = document.getElementById('transcript-date');
+  const contentInput = document.getElementById('transcript-content');
+
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
+
+  if (!title || !content) {
+    alert('Please enter both a title and content for the transcript.');
+    return;
+  }
+
+  transcripts.push({
+    title: title,
+    date: dateInput.value || null,
+    content: content
+  });
+
+  // Clear inputs
+  titleInput.value = '';
+  dateInput.value = '';
+  contentInput.value = '';
+
+  renderTranscripts();
+}
+
+/**
+ * Remove transcript from list
+ */
+function removeTranscript(index) {
+  transcripts.splice(index, 1);
+  renderTranscripts();
+}
+
+/**
+ * Render transcripts in form
+ */
+function renderTranscripts() {
+  const container = document.getElementById('transcripts-container');
+  if (!container) return;
+
+  if (transcripts.length === 0) {
+    container.innerHTML = '<p style="color: #555; font-style: italic;">No transcripts added yet.</p>';
+    return;
+  }
+
+  container.innerHTML = transcripts.map((transcript, index) => {
+    const dateDisplay = transcript.date ? ` <span style="color: #555;">(${transcript.date})</span>` : '';
+    const preview = transcript.content.substring(0, 100).replace(/\n/g, ' ');
+
+    return `
+      <div class="transcript-item" style="background: rgba(0,255,255,0.1); border: 2px solid var(--electric-blue); padding: 15px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div>
+            <strong style="color: var(--neon-yellow);">${escapeHtml(transcript.title)}</strong>${dateDisplay}
+            <p style="color: var(--cyber-green); font-size: 0.85rem; margin-top: 8px;">${escapeHtml(preview)}${transcript.content.length > 100 ? '...' : ''}</p>
+          </div>
+          <button type="button" class="tag__remove" style="color: var(--warning-red); font-size: 1.2rem; background: none; border: none; cursor: pointer;" onclick="removeTranscript(${index})">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
  * Handle specimen form submission
  */
 async function handleFormSubmit(e) {
@@ -651,6 +724,7 @@ async function handleFormSubmit(e) {
     additionalPhotos: additionalUrls,
     specialAbilities: abilities,
     knownAssociates: associates,
+    transcripts: transcripts,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -689,6 +763,7 @@ function cancelForm() {
   currentEditId = null;
   abilities = [];
   associates = [];
+  transcripts = [];
 
   specimenForm.reset();
   clearFormPreviews();

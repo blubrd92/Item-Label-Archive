@@ -185,11 +185,19 @@ function createNoteCard(note) {
   // Truncate content for preview
   const preview = (note.content || '').replace(/\[REDACTED:.*?\]/g, '[REDACTED]').substring(0, 150);
 
+  // Image thumbnail if available
+  const imageHtml = note.image ? `
+    <div class="fieldnote-card__image" style="height: 120px; overflow: hidden; border-bottom: 2px solid ${categoryColor};">
+      <img src="${note.image}" alt="${note.title}" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+  ` : '';
+
   return `
     <article class="fieldnote-card" onclick="openNoteModal('${note.id}')" style="border-color: ${categoryColor};">
       <div class="fieldnote-card__category" style="background: ${categoryColor}; color: var(--bg-darker);">
         ${note.category || 'OTHER'}
       </div>
+      ${imageHtml}
       <div class="fieldnote-card__body">
         <h3 class="fieldnote-card__title">${escapeHtml(note.title || 'Untitled')}</h3>
         <p class="fieldnote-card__preview">${escapeHtml(preview)}${preview.length >= 150 ? '...' : ''}</p>
@@ -214,9 +222,25 @@ function openNoteModal(id) {
   // Set modal content
   document.getElementById('modal-category').textContent = note.category || 'FIELD NOTE';
   document.getElementById('modal-title').textContent = note.title || 'Untitled';
+
+  // Show image if available
+  const modalImage = document.getElementById('modal-image');
+  if (modalImage) {
+    if (note.image) {
+      modalImage.innerHTML = `<img src="${note.image}" alt="${note.title}" style="max-width: 100%; max-height: 300px; border: 3px solid var(--cyber-green); margin-bottom: 20px;">`;
+      modalImage.classList.remove('hidden');
+    } else {
+      modalImage.innerHTML = '';
+      modalImage.classList.add('hidden');
+    }
+  }
+
   document.getElementById('modal-content').innerHTML = parseRedactedText(note.content || '');
   document.getElementById('modal-date').textContent = formatDate(note.createdAt);
-  document.getElementById('modal-author').textContent = note.createdBy || 'Unknown';
+
+  // Show Field Agent number instead of email
+  const agentNumber = note.agentNumber || Math.floor(Math.random() * 99) + 1;
+  document.getElementById('modal-author').textContent = `Field Agent ${agentNumber}`;
 
   // Related specimens
   const specimensSection = document.getElementById('modal-specimens');

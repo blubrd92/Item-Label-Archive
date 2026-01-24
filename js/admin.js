@@ -310,6 +310,12 @@ function setupFormHandlers() {
       addAbility();
     }
   });
+
+  // Field note image upload
+  const noteImageFile = document.getElementById('note-image-file');
+  if (noteImageFile) {
+    noteImageFile.addEventListener('change', (e) => handleFileSelect(e, 'note-image'));
+  }
 }
 
 /**
@@ -365,6 +371,17 @@ async function handleFileSelect(e, type) {
         previewDiv.style.position = 'relative';
         previewContainer.appendChild(previewDiv);
       }
+    } else if (type === 'note-image') {
+      uploadStatus.textContent = 'Uploading image...';
+      const url = await uploadImageToImgBB(files[0]);
+
+      document.getElementById('note-image-url').value = url;
+
+      const preview = document.getElementById('note-image-preview');
+      preview.innerHTML = `<img src="${url}" alt="Note image preview">`;
+      preview.classList.remove('hidden');
+
+      document.querySelector('#note-image-upload .file-upload__text').textContent = 'Image uploaded! Click to replace.';
     }
 
     hideUploadModal();
@@ -623,7 +640,7 @@ async function handleFormSubmit(e) {
       console.log('Specimen updated:', currentEditId);
     } else {
       specimenData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      specimenData.createdBy = getCurrentUser()?.email || 'Unknown';
+      specimenData.agentNumber = generateAgentNumber();
 
       const docRef = await db.collection('specimens').add(specimenData);
       console.log('New specimen created:', docRef.id);
@@ -713,6 +730,7 @@ function showNewNoteForm() {
   noteSubmitBtn.textContent = 'Save Note';
 
   fieldnoteForm.reset();
+  clearNoteImagePreview();
   renderRelatedSpecimens();
   populateNoteSpecimensDropdown();
 
@@ -721,6 +739,22 @@ function showNewNoteForm() {
   noteFormContainer.classList.remove('hidden');
 
   renderFieldNotesList();
+}
+
+/**
+ * Clear note image preview
+ */
+function clearNoteImagePreview() {
+  const urlInput = document.getElementById('note-image-url');
+  const preview = document.getElementById('note-image-preview');
+  const uploadText = document.querySelector('#note-image-upload .file-upload__text');
+
+  if (urlInput) urlInput.value = '';
+  if (preview) {
+    preview.innerHTML = '';
+    preview.classList.add('hidden');
+  }
+  if (uploadText) uploadText.textContent = 'Click or drag to upload image (optional)';
 }
 
 /**
@@ -741,6 +775,16 @@ async function editFieldNote(id) {
   document.getElementById('note-title').value = note.title || '';
   document.getElementById('note-category').value = note.category || 'OTHER';
   document.getElementById('note-content').value = note.content || '';
+
+  // Handle existing image
+  clearNoteImagePreview();
+  if (note.image) {
+    document.getElementById('note-image-url').value = note.image;
+    const preview = document.getElementById('note-image-preview');
+    preview.innerHTML = `<img src="${note.image}" alt="Note image preview">`;
+    preview.classList.remove('hidden');
+    document.querySelector('#note-image-upload .file-upload__text').textContent = 'Image uploaded! Click to replace.';
+  }
 
   renderRelatedSpecimens();
   populateNoteSpecimensDropdown();
@@ -796,15 +840,25 @@ function renderRelatedSpecimens() {
 }
 
 /**
+ * Generate a random agent number (1-99)
+ */
+function generateAgentNumber() {
+  return Math.floor(Math.random() * 99) + 1;
+}
+
+/**
  * Handle field note form submission
  */
 async function handleNoteFormSubmit(e) {
   e.preventDefault();
 
+  const imageUrl = document.getElementById('note-image-url').value || null;
+
   const noteData = {
     title: document.getElementById('note-title').value.trim(),
     category: document.getElementById('note-category').value,
     content: document.getElementById('note-content').value.trim(),
+    image: imageUrl,
     relatedSpecimens: relatedSpecimens,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -818,7 +872,7 @@ async function handleNoteFormSubmit(e) {
       console.log('Field note updated:', currentNoteEditId);
     } else {
       noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      noteData.createdBy = getCurrentUser()?.email || 'Unknown';
+      noteData.agentNumber = generateAgentNumber();
 
       const docRef = await db.collection('fieldNotes').add(noteData);
       console.log('New field note created:', docRef.id);
@@ -845,6 +899,7 @@ function cancelNoteForm() {
   relatedSpecimens = [];
 
   fieldnoteForm.reset();
+  clearNoteImagePreview();
 
   noteFormContainer.classList.add('hidden');
   welcomeMessage.classList.remove('hidden');

@@ -332,6 +332,23 @@ Example: The organization was founded in [REDACTED:1947] by [REDACTED:Agent Quac
               </div>
             </div>
 
+            <!-- Image Upload Section -->
+            <div class="panel">
+              <div class="panel__title">/// ATTACHED IMAGE (OPTIONAL) ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Supporting Image</label>
+                  <div class="file-upload" id="note-image-upload">
+                    <input type="file" class="file-upload__input" id="note-image-file" accept="image/*">
+                    <p class="file-upload__text">Click or drag to upload image (optional)</p>
+                    <div class="file-upload__preview hidden" id="note-image-preview"></div>
+                  </div>
+                  <input type="hidden" id="note-image-url">
+                  <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">Supported: JPG, PNG, GIF, WebP</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Related Specimens Section -->
             <div class="panel">
               <div class="panel__title">/// RELATED SPECIMENS ///</div>

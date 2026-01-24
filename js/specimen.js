@@ -198,7 +198,9 @@ async function renderDossier(specimen) {
   // Metadata
   document.getElementById('meta-created').textContent = formatTimestamp(specimen.createdAt);
   document.getElementById('meta-updated').textContent = formatTimestamp(specimen.updatedAt);
-  document.getElementById('meta-creator').textContent = specimen.createdBy || 'Unknown Agent';
+  // Show Field Agent number instead of email
+  const agentNumber = specimen.agentNumber || Math.floor(Math.random() * 99) + 1;
+  document.getElementById('meta-creator').textContent = `Field Agent ${agentNumber}`;
 
   // Show the dossier
   hideLoading();

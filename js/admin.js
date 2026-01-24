@@ -2,10 +2,10 @@
  * Bureau of Peepy Investigation
  * Admin Module
  *
- * Handles CRUD operations for specimens
+ * Handles CRUD operations for specimens and field notes
  */
 
-// DOM Elements
+// DOM Elements - Specimens
 const specimenList = document.getElementById('specimen-list');
 const noSpecimens = document.getElementById('no-specimens');
 const sidebarLoading = document.getElementById('sidebar-loading');
@@ -16,17 +16,39 @@ const formTitle = document.getElementById('form-title');
 const deleteBtn = document.getElementById('delete-btn');
 const submitBtn = document.getElementById('submit-btn');
 
+// DOM Elements - Field Notes
+const fieldnotesList = document.getElementById('fieldnotes-list');
+const noFieldnotes = document.getElementById('no-fieldnotes');
+const notesSidebarLoading = document.getElementById('notes-sidebar-loading');
+const noteFormContainer = document.getElementById('fieldnote-form-container');
+const fieldnoteForm = document.getElementById('fieldnote-form');
+const noteFormTitle = document.getElementById('note-form-title');
+const noteDeleteBtn = document.getElementById('note-delete-btn');
+const noteSubmitBtn = document.getElementById('note-submit-btn');
+
+// DOM Elements - Tabs and Sidebars
+const tabSpecimens = document.getElementById('tab-specimens');
+const tabFieldnotes = document.getElementById('tab-fieldnotes');
+const specimensSidebar = document.getElementById('specimens-sidebar');
+const fieldnotesSidebar = document.getElementById('fieldnotes-sidebar');
+
 // Modal elements
 const deleteModal = document.getElementById('delete-modal');
+const deleteNoteModal = document.getElementById('delete-note-modal');
 const uploadModal = document.getElementById('upload-modal');
 const uploadStatus = document.getElementById('upload-status');
 
 // Data
 let allSpecimens = [];
+let allFieldNotes = [];
 let currentEditId = null;
+let currentNoteEditId = null;
 let abilities = [];
 let associates = [];
-let unsubscribe = null;
+let relatedSpecimens = [];
+let unsubscribeSpecimens = null;
+let unsubscribeNotes = null;
+let currentTab = 'specimens';
 
 /**
  * Initialize admin dashboard
@@ -39,11 +61,77 @@ function initAdmin() {
     console.warn('ImgBB is not configured. Image uploads will not work.');
   }
 
-  // Set up real-time listener for specimens
+  // Set up real-time listeners
   setupSpecimenListener();
+  setupFieldNotesListener();
 
   // Set up form handlers
   setupFormHandlers();
+
+  // Check URL parameters for direct edit
+  checkUrlParameters();
+}
+
+/**
+ * Check URL parameters for edit links
+ */
+function checkUrlParameters() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // Check for specimen edit
+  const editSpecimenId = urlParams.get('edit');
+  if (editSpecimenId) {
+    // Wait for specimens to load, then edit
+    const checkSpecimens = setInterval(() => {
+      if (allSpecimens.length > 0 || sidebarLoading.classList.contains('hidden')) {
+        clearInterval(checkSpecimens);
+        switchTab('specimens');
+        editSpecimen(editSpecimenId);
+      }
+    }, 100);
+  }
+
+  // Check for field note edit
+  const editNoteId = urlParams.get('editNote');
+  if (editNoteId) {
+    // Wait for notes to load, then edit
+    const checkNotes = setInterval(() => {
+      if (allFieldNotes.length > 0 || (notesSidebarLoading && notesSidebarLoading.classList.contains('hidden'))) {
+        clearInterval(checkNotes);
+        switchTab('fieldnotes');
+        editFieldNote(editNoteId);
+      }
+    }, 100);
+  }
+}
+
+/**
+ * Switch between tabs
+ * @param {string} tab - 'specimens' or 'fieldnotes'
+ */
+function switchTab(tab) {
+  currentTab = tab;
+
+  // Update tab styles
+  tabSpecimens.classList.toggle('admin-tab--active', tab === 'specimens');
+  tabFieldnotes.classList.toggle('admin-tab--active', tab === 'fieldnotes');
+
+  // Show/hide sidebars
+  specimensSidebar.classList.toggle('hidden', tab !== 'specimens');
+  fieldnotesSidebar.classList.toggle('hidden', tab !== 'fieldnotes');
+
+  // Hide all forms, show welcome
+  formContainer.classList.add('hidden');
+  noteFormContainer.classList.add('hidden');
+  welcomeMessage.classList.remove('hidden');
+
+  // Reset edit states
+  currentEditId = null;
+  currentNoteEditId = null;
+
+  // Re-render lists to clear active states
+  renderSpecimenList();
+  renderFieldNotesList();
 }
 
 /**
@@ -52,7 +140,7 @@ function initAdmin() {
 function setupSpecimenListener() {
   sidebarLoading.classList.remove('hidden');
 
-  unsubscribe = db.collection('specimens')
+  unsubscribeSpecimens = db.collection('specimens')
     .orderBy('name')
     .onSnapshot(
       (snapshot) => {
@@ -66,11 +154,46 @@ function setupSpecimenListener() {
 
         renderSpecimenList();
         populateAssociatesDropdown();
+        populateNoteSpecimensDropdown();
         sidebarLoading.classList.add('hidden');
       },
       (error) => {
         console.error('Error fetching specimens:', error);
         sidebarLoading.classList.add('hidden');
+      }
+    );
+}
+
+/**
+ * Set up real-time Firestore listener for field notes
+ */
+function setupFieldNotesListener() {
+  if (notesSidebarLoading) {
+    notesSidebarLoading.classList.remove('hidden');
+  }
+
+  unsubscribeNotes = db.collection('fieldNotes')
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(
+      (snapshot) => {
+        allFieldNotes = [];
+        snapshot.forEach((doc) => {
+          allFieldNotes.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+
+        renderFieldNotesList();
+        if (notesSidebarLoading) {
+          notesSidebarLoading.classList.add('hidden');
+        }
+      },
+      (error) => {
+        console.error('Error fetching field notes:', error);
+        if (notesSidebarLoading) {
+          notesSidebarLoading.classList.add('hidden');
+        }
       }
     );
 }
@@ -99,15 +222,62 @@ function renderSpecimenList() {
 }
 
 /**
+ * Render field notes list in sidebar
+ */
+function renderFieldNotesList() {
+  if (!fieldnotesList) return;
+
+  if (allFieldNotes.length === 0) {
+    fieldnotesList.innerHTML = '';
+    if (noFieldnotes) noFieldnotes.classList.remove('hidden');
+    return;
+  }
+
+  if (noFieldnotes) noFieldnotes.classList.add('hidden');
+
+  const categoryColors = {
+    'ORGANIZATION': '#FF00FF',
+    'LOCATION': '#00FFFF',
+    'SPECIES': '#00FF00',
+    'OTHER': '#FFFF00'
+  };
+
+  fieldnotesList.innerHTML = allFieldNotes.map(note => `
+    <li class="admin-list__item ${currentNoteEditId === note.id ? 'admin-list__item--active' : ''}"
+        onclick="editFieldNote('${note.id}')">
+      <span>${escapeHtml(note.title || 'Untitled')}</span>
+      <span style="font-size: 0.7rem; color: ${categoryColors[note.category] || '#00FF00'};">
+        ${note.category || '?'}
+      </span>
+    </li>
+  `).join('');
+}
+
+/**
  * Populate associates dropdown with existing specimens
  */
 function populateAssociatesDropdown() {
   const select = document.getElementById('associates-select');
+  if (!select) return;
+
   const currentId = currentEditId;
 
   select.innerHTML = '<option value="">-- Select a specimen --</option>' +
     allSpecimens
-      .filter(s => s.id !== currentId) // Don't show self
+      .filter(s => s.id !== currentId)
+      .map(s => `<option value="${s.id}">${escapeHtml(s.name || s.codename || s.id)}</option>`)
+      .join('');
+}
+
+/**
+ * Populate note specimens dropdown
+ */
+function populateNoteSpecimensDropdown() {
+  const select = document.getElementById('note-specimens-select');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-- Select a specimen --</option>' +
+    allSpecimens
       .map(s => `<option value="${s.id}">${escapeHtml(s.name || s.codename || s.id)}</option>`)
       .join('');
 }
@@ -116,8 +286,13 @@ function populateAssociatesDropdown() {
  * Set up form event handlers
  */
 function setupFormHandlers() {
-  // Form submission
+  // Specimen form submission
   specimenForm.addEventListener('submit', handleFormSubmit);
+
+  // Field note form submission
+  if (fieldnoteForm) {
+    fieldnoteForm.addEventListener('submit', handleNoteFormSubmit);
+  }
 
   // Mugshot file upload
   const mugshotFile = document.getElementById('mugshot-file');
@@ -158,15 +333,12 @@ async function handleFileSelect(e, type) {
       uploadStatus.textContent = 'Uploading mugshot...';
       const url = await uploadImageToImgBB(files[0]);
 
-      // Store URL
       document.getElementById('mugshot-url').value = url;
 
-      // Show preview
       const preview = document.getElementById('mugshot-preview');
       preview.innerHTML = `<img src="${url}" alt="Mugshot preview">`;
       preview.classList.remove('hidden');
 
-      // Update upload text
       document.querySelector('#mugshot-upload .file-upload__text').textContent = 'Image uploaded! Click to replace.';
 
     } else if (type === 'additional') {
@@ -177,14 +349,12 @@ async function handleFileSelect(e, type) {
         uploadStatus.textContent = `Uploading photo ${i + 1} of ${files.length}...`;
         const url = await uploadImageToImgBB(files[i]);
 
-        // Add hidden input for URL
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'additionalPhoto';
         input.value = url;
         urlsContainer.appendChild(input);
 
-        // Add preview
         const previewDiv = document.createElement('div');
         previewDiv.className = 'photo-gallery__item';
         previewDiv.innerHTML = `
@@ -205,20 +375,15 @@ async function handleFileSelect(e, type) {
     alert('Failed to upload image: ' + error.message);
   }
 
-  // Clear file input
   e.target.value = '';
 }
 
 /**
  * Remove an additional photo
- * @param {HTMLElement} btn
- * @param {string} url
  */
 function removeAdditionalPhoto(btn, url) {
-  // Remove preview
   btn.parentElement.remove();
 
-  // Remove hidden input
   const inputs = document.querySelectorAll('#additional-urls input');
   inputs.forEach(input => {
     if (input.value === url) {
@@ -226,6 +391,10 @@ function removeAdditionalPhoto(btn, url) {
     }
   });
 }
+
+// ============================================
+// SPECIMEN CRUD
+// ============================================
 
 /**
  * Show new specimen form
@@ -246,14 +415,14 @@ function showNewForm() {
   populateAssociatesDropdown();
 
   welcomeMessage.classList.add('hidden');
+  noteFormContainer.classList.add('hidden');
   formContainer.classList.remove('hidden');
 
-  renderSpecimenList(); // Clear active state
+  renderSpecimenList();
 }
 
 /**
  * Edit existing specimen
- * @param {string} id
  */
 async function editSpecimen(id) {
   const specimen = allSpecimens.find(s => s.id === id);
@@ -267,7 +436,6 @@ async function editSpecimen(id) {
   deleteBtn.classList.remove('hidden');
   submitBtn.textContent = 'Update Report';
 
-  // Populate form fields
   document.getElementById('specimen-id').value = id;
   document.getElementById('name').value = specimen.name || '';
   document.getElementById('codename').value = specimen.codename || '';
@@ -279,7 +447,6 @@ async function editSpecimen(id) {
   document.getElementById('lore').value = specimen.lore || '';
   document.getElementById('notes').value = specimen.notes || '';
 
-  // Mugshot preview
   clearFormPreviews();
   if (specimen.mugshot) {
     document.getElementById('mugshot-url').value = specimen.mugshot;
@@ -288,7 +455,6 @@ async function editSpecimen(id) {
     preview.classList.remove('hidden');
   }
 
-  // Additional photos
   if (specimen.additionalPhotos && specimen.additionalPhotos.length > 0) {
     const urlsContainer = document.getElementById('additional-urls');
     const previewContainer = document.getElementById('additional-previews');
@@ -317,6 +483,7 @@ async function editSpecimen(id) {
   populateAssociatesDropdown();
 
   welcomeMessage.classList.add('hidden');
+  noteFormContainer.classList.add('hidden');
   formContainer.classList.remove('hidden');
 
   renderSpecimenList();
@@ -352,7 +519,6 @@ function addAbility() {
 
 /**
  * Remove ability from list
- * @param {number} index
  */
 function removeAbility(index) {
   abilities.splice(index, 1);
@@ -389,7 +555,6 @@ function addAssociate() {
 
 /**
  * Remove associate from list
- * @param {number} index
  */
 function removeAssociate(index) {
   associates.splice(index, 1);
@@ -415,27 +580,23 @@ function renderAssociates() {
 }
 
 /**
- * Handle form submission
- * @param {Event} e
+ * Handle specimen form submission
  */
 async function handleFormSubmit(e) {
   e.preventDefault();
 
   const mugshotUrl = document.getElementById('mugshot-url').value;
 
-  // Validate mugshot for new specimens
   if (!currentEditId && !mugshotUrl) {
     alert('Please upload a mugshot image.');
     return;
   }
 
-  // Gather additional photo URLs
   const additionalUrls = [];
   document.querySelectorAll('#additional-urls input').forEach(input => {
     if (input.value) additionalUrls.push(input.value);
   });
 
-  // Build specimen data
   const specimenData = {
     name: document.getElementById('name').value.trim(),
     codename: document.getElementById('codename').value.trim(),
@@ -458,11 +619,9 @@ async function handleFormSubmit(e) {
 
   try {
     if (currentEditId) {
-      // Update existing
       await db.collection('specimens').doc(currentEditId).update(specimenData);
       console.log('Specimen updated:', currentEditId);
     } else {
-      // Create new
       specimenData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       specimenData.createdBy = getCurrentUser()?.email || 'Unknown';
 
@@ -471,7 +630,6 @@ async function handleFormSubmit(e) {
       currentEditId = docRef.id;
     }
 
-    // Show success and reset
     alert('Specimen report saved successfully!');
     cancelForm();
 
@@ -485,7 +643,7 @@ async function handleFormSubmit(e) {
 }
 
 /**
- * Cancel form and return to welcome
+ * Cancel specimen form
  */
 function cancelForm() {
   currentEditId = null;
@@ -502,7 +660,7 @@ function cancelForm() {
 }
 
 /**
- * Open delete confirmation modal
+ * Open delete specimen modal
  */
 function deleteSpecimen() {
   if (!currentEditId) return;
@@ -514,14 +672,14 @@ function deleteSpecimen() {
 }
 
 /**
- * Close delete modal
+ * Close delete specimen modal
  */
 function closeDeleteModal() {
   deleteModal.classList.remove('active');
 }
 
 /**
- * Confirm and execute deletion
+ * Confirm specimen deletion
  */
 async function confirmDelete() {
   if (!currentEditId) return;
@@ -539,6 +697,203 @@ async function confirmDelete() {
   }
 }
 
+// ============================================
+// FIELD NOTES CRUD
+// ============================================
+
+/**
+ * Show new field note form
+ */
+function showNewNoteForm() {
+  currentNoteEditId = null;
+  relatedSpecimens = [];
+
+  noteFormTitle.textContent = 'ADD FIELD NOTE';
+  noteDeleteBtn.classList.add('hidden');
+  noteSubmitBtn.textContent = 'Save Note';
+
+  fieldnoteForm.reset();
+  renderRelatedSpecimens();
+  populateNoteSpecimensDropdown();
+
+  welcomeMessage.classList.add('hidden');
+  formContainer.classList.add('hidden');
+  noteFormContainer.classList.remove('hidden');
+
+  renderFieldNotesList();
+}
+
+/**
+ * Edit existing field note
+ */
+async function editFieldNote(id) {
+  const note = allFieldNotes.find(n => n.id === id);
+  if (!note) return;
+
+  currentNoteEditId = id;
+  relatedSpecimens = note.relatedSpecimens || [];
+
+  noteFormTitle.textContent = 'EDIT FIELD NOTE';
+  noteDeleteBtn.classList.remove('hidden');
+  noteSubmitBtn.textContent = 'Update Note';
+
+  document.getElementById('note-id').value = id;
+  document.getElementById('note-title').value = note.title || '';
+  document.getElementById('note-category').value = note.category || 'OTHER';
+  document.getElementById('note-content').value = note.content || '';
+
+  renderRelatedSpecimens();
+  populateNoteSpecimensDropdown();
+
+  welcomeMessage.classList.add('hidden');
+  formContainer.classList.add('hidden');
+  noteFormContainer.classList.remove('hidden');
+
+  renderFieldNotesList();
+}
+
+/**
+ * Add related specimen to field note
+ */
+function addRelatedSpecimen() {
+  const select = document.getElementById('note-specimens-select');
+  const id = select.value;
+
+  if (id && !relatedSpecimens.includes(id)) {
+    relatedSpecimens.push(id);
+    renderRelatedSpecimens();
+  }
+
+  select.value = '';
+}
+
+/**
+ * Remove related specimen
+ */
+function removeRelatedSpecimen(index) {
+  relatedSpecimens.splice(index, 1);
+  renderRelatedSpecimens();
+}
+
+/**
+ * Render related specimens tags
+ */
+function renderRelatedSpecimens() {
+  const container = document.getElementById('related-specimens-container');
+  if (!container) return;
+
+  container.innerHTML = relatedSpecimens.map((id, index) => {
+    const specimen = allSpecimens.find(s => s.id === id);
+    const name = specimen ? (specimen.name || specimen.codename || id) : id;
+
+    return `
+      <span class="tag">
+        ${escapeHtml(name)}
+        <span class="tag__remove" onclick="removeRelatedSpecimen(${index})">&times;</span>
+      </span>
+    `;
+  }).join('');
+}
+
+/**
+ * Handle field note form submission
+ */
+async function handleNoteFormSubmit(e) {
+  e.preventDefault();
+
+  const noteData = {
+    title: document.getElementById('note-title').value.trim(),
+    category: document.getElementById('note-category').value,
+    content: document.getElementById('note-content').value.trim(),
+    relatedSpecimens: relatedSpecimens,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  noteSubmitBtn.disabled = true;
+  noteSubmitBtn.textContent = 'Saving...';
+
+  try {
+    if (currentNoteEditId) {
+      await db.collection('fieldNotes').doc(currentNoteEditId).update(noteData);
+      console.log('Field note updated:', currentNoteEditId);
+    } else {
+      noteData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      noteData.createdBy = getCurrentUser()?.email || 'Unknown';
+
+      const docRef = await db.collection('fieldNotes').add(noteData);
+      console.log('New field note created:', docRef.id);
+      currentNoteEditId = docRef.id;
+    }
+
+    alert('Field note saved successfully!');
+    cancelNoteForm();
+
+  } catch (error) {
+    console.error('Error saving field note:', error);
+    alert('Failed to save field note: ' + error.message);
+  } finally {
+    noteSubmitBtn.disabled = false;
+    noteSubmitBtn.textContent = currentNoteEditId ? 'Update Note' : 'Save Note';
+  }
+}
+
+/**
+ * Cancel field note form
+ */
+function cancelNoteForm() {
+  currentNoteEditId = null;
+  relatedSpecimens = [];
+
+  fieldnoteForm.reset();
+
+  noteFormContainer.classList.add('hidden');
+  welcomeMessage.classList.remove('hidden');
+
+  renderFieldNotesList();
+}
+
+/**
+ * Open delete field note modal
+ */
+function deleteFieldNote() {
+  if (!currentNoteEditId) return;
+
+  const note = allFieldNotes.find(n => n.id === currentNoteEditId);
+  document.getElementById('delete-note-name').textContent = note?.title || currentNoteEditId;
+
+  deleteNoteModal.classList.add('active');
+}
+
+/**
+ * Close delete field note modal
+ */
+function closeDeleteNoteModal() {
+  deleteNoteModal.classList.remove('active');
+}
+
+/**
+ * Confirm field note deletion
+ */
+async function confirmDeleteNote() {
+  if (!currentNoteEditId) return;
+
+  closeDeleteNoteModal();
+
+  try {
+    await db.collection('fieldNotes').doc(currentNoteEditId).delete();
+    console.log('Field note deleted:', currentNoteEditId);
+    alert('Field note has been permanently deleted.');
+    cancelNoteForm();
+  } catch (error) {
+    console.error('Error deleting field note:', error);
+    alert('Failed to delete field note: ' + error.message);
+  }
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
 /**
  * Show upload progress modal
  */
@@ -555,8 +910,6 @@ function hideUploadModal() {
 
 /**
  * Escape HTML to prevent XSS
- * @param {string} text
- * @returns {string}
  */
 function escapeHtml(text) {
   if (!text) return '';
@@ -565,9 +918,12 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Clean up listener when page unloads
+// Clean up listeners when page unloads
 window.addEventListener('beforeunload', () => {
-  if (unsubscribe) {
-    unsubscribe();
+  if (unsubscribeSpecimens) {
+    unsubscribeSpecimens();
+  }
+  if (unsubscribeNotes) {
+    unsubscribeNotes();
   }
 });

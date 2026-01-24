@@ -1007,3 +1007,121 @@ a:hover {
 .flex-center { justify-content: center; align-items: center; }
 .gap-1 { gap: 10px; }
 .gap-2 { gap: 20px; }
+
+/* Field Notes Grid */
+.fieldnotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  padding: 20px 0;
+}
+
+/* Field Note Card */
+.fieldnote-card {
+  background: var(--bg-darker);
+  border: 3px solid var(--cyber-green);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--hot-pink);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.fieldnote-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--hot-pink);
+}
+
+.fieldnote-card__category {
+  padding: 8px 15px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.fieldnote-card__body {
+  padding: 15px;
+}
+
+.fieldnote-card__title {
+  color: var(--neon-yellow);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.fieldnote-card__preview {
+  color: var(--cyber-green);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  opacity: 0.8;
+}
+
+.fieldnote-card__meta {
+  padding-top: 10px;
+  border-top: 1px dashed #333;
+}
+
+/* Admin Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 3px solid var(--cyber-green);
+}
+
+.admin-tab {
+  padding: 12px 25px;
+  background: transparent;
+  border: none;
+  color: var(--cyber-green);
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+}
+
+.admin-tab:hover {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.admin-tab--active {
+  background: rgba(0, 255, 0, 0.2);
+  border-bottom-color: var(--neon-yellow);
+  color: var(--neon-yellow);
+}
+
+/* Edit Button on Public Pages */
+.edit-floating-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 100;
+}
+
+@media (max-width: 768px) {
+  .fieldnotes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tabs {
+    flex-direction: column;
+  }
+
+  .admin-tab {
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    margin-bottom: 0;
+    margin-left: -3px;
+  }
+
+  .admin-tab--active {
+    border-left-color: var(--neon-yellow);
+    border-bottom-color: transparent;
+  }
+}

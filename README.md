@@ -1,6 +1,6 @@
 # Bureau of Peepy Investigation (B.P.I.)
 
-A retro Y2K-styled digital archive for documenting itemLabel plushie specimens.
+A retro Y2K-styled digital archive for documenting Item Label plushie specimens.
 
 ---
 

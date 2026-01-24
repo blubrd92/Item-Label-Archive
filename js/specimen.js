@@ -13,6 +13,7 @@ const dossierEl = document.getElementById('dossier');
 // Current specimen data
 let currentSpecimen = null;
 let associatesCache = {};
+let isAdmin = false;
 
 /**
  * Initialize the specimen page
@@ -33,8 +34,53 @@ function initSpecimen() {
     return;
   }
 
+  // Check auth state for admin edit button
+  if (auth) {
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        await checkAdminStatus(user.email, specimenId);
+      }
+    });
+  }
+
   // Load specimen data
   loadSpecimen(specimenId);
+}
+
+/**
+ * Check if user is an admin and show edit button
+ * @param {string} email
+ * @param {string} specimenId
+ */
+async function checkAdminStatus(email, specimenId) {
+  try {
+    const settingsDoc = await db.collection('settings').doc('config').get();
+    if (settingsDoc.exists) {
+      const settings = settingsDoc.data();
+      const allowedAdmins = settings.allowedAdmins || [];
+      isAdmin = allowedAdmins.includes(email);
+
+      if (isAdmin) {
+        showEditButton(specimenId);
+      }
+    }
+  } catch (error) {
+    console.log('Could not check admin status:', error.message);
+  }
+}
+
+/**
+ * Show the edit button for admins
+ * @param {string} specimenId
+ */
+function showEditButton(specimenId) {
+  const editBtnContainer = document.getElementById('admin-edit-btn');
+  const editLink = document.getElementById('edit-specimen-link');
+
+  if (editBtnContainer && editLink) {
+    editLink.href = `admin.html?edit=${specimenId}`;
+    editBtnContainer.classList.remove('hidden');
+  }
 }
 
 /**

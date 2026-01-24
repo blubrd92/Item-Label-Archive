@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Notes | Bureau of Peepy Investigation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Marquee Alert Banner -->
+  <div class="marquee-banner">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      /// FIELD INTELLIGENCE /// ORGANIZATIONS /// LOCATIONS /// SPECIES DATA /// ITEM LABEL ARCHIVES ///
+    </marquee>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="header__logo">B.P.I.</h1>
+    <p class="header__subtitle">Bureau of Peepy Investigation</p>
+    <p style="color: var(--hot-pink); margin-top: 10px; font-size: 0.9rem;">[ FIELD NOTES DATABASE ]</p>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="index.html" class="nav__link">Specimen Gallery</a>
+    <a href="fieldnotes.html" class="nav__link nav__link--active">Field Notes</a>
+    <a href="admin.html" class="nav__link">Admin Portal</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Category Filter -->
+    <div class="filter-bar">
+      <span class="filter-bar__label">Category:</span>
+      <select id="filter-category">
+        <option value="">All Categories</option>
+        <option value="ORGANIZATION">Organizations</option>
+        <option value="LOCATION">Locations</option>
+        <option value="SPECIES">Species</option>
+        <option value="OTHER">Other Intel</option>
+      </select>
+      <select id="sort-by">
+        <option value="date">Sort: Newest</option>
+        <option value="title">Sort: Title</option>
+        <option value="category">Sort: Category</option>
+      </select>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+      <div class="loading__spinner"></div>
+      <p class="loading__text">Decrypting Field Notes...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-message hidden" id="error-message">
+      Connection to database failed. Please try again later.
+    </div>
+
+    <!-- Empty State -->
+    <div class="panel hidden" id="empty-state">
+      <div class="panel__title">/// NO FIELD NOTES FOUND ///</div>
+      <div class="panel__content text-center">
+        <p style="color: var(--cyber-green); margin-bottom: 20px;">The field notes archive is currently empty.</p>
+        <p style="color: var(--hot-pink);">Authorized personnel may add notes via the Admin Portal.</p>
+      </div>
+    </div>
+
+    <!-- Field Notes Grid -->
+    <div class="fieldnotes-grid hidden" id="fieldnotes-grid">
+      <!-- Field note cards will be dynamically inserted here -->
+    </div>
+  </main>
+
+  <!-- Field Note Detail Modal -->
+  <div class="modal-overlay" id="note-modal">
+    <div class="modal" style="max-width: 800px;">
+      <div class="modal__header">
+        <span id="modal-category">FIELD NOTE</span>
+        <button class="modal__close" onclick="closeNoteModal()">&times;</button>
+      </div>
+      <div class="modal__body">
+        <h2 id="modal-title" style="color: var(--neon-yellow); margin-bottom: 15px;"></h2>
+        <div id="modal-content" style="color: var(--cyber-green); line-height: 1.8;"></div>
+
+        <!-- Related Specimens -->
+        <div class="hidden" id="modal-specimens" style="margin-top: 25px; padding-top: 20px; border-top: 2px dashed #333;">
+          <h3 style="color: var(--electric-blue); margin-bottom: 15px; font-size: 1rem;">RELATED SPECIMENS</h3>
+          <div class="associates-list" id="modal-specimens-list"></div>
+        </div>
+
+        <!-- Metadata -->
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #333; font-size: 0.8rem; color: #555;">
+          <p>Filed: <span id="modal-date">-</span></p>
+          <p>Agent: <span id="modal-author">-</span></p>
+        </div>
+
+        <!-- Edit Button (admin only) -->
+        <div class="hidden mt-2" id="modal-edit-btn">
+          <a href="#" id="modal-edit-link" class="btn btn--secondary">Edit This Note</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>BUREAU OF PEEPY INVESTIGATION &copy; <span id="year"></span></p>
+    <p style="margin-top: 10px;">All intelligence is property of Item Label. Unauthorized access is prohibited.</p>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/fieldnotes.js"></script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

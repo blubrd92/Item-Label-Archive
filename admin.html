@@ -23,7 +23,8 @@
 
   <!-- Navigation -->
   <nav class="nav">
-    <a href="index.html" class="nav__link">&larr; Public Gallery</a>
+    <a href="index.html" class="nav__link">Specimen Gallery</a>
+    <a href="fieldnotes.html" class="nav__link">Field Notes</a>
     <a href="admin.html" class="nav__link nav__link--active">Admin Portal</a>
     <button class="nav__link hidden" id="logout-btn" onclick="handleLogout()">Logout</button>
   </nav>
@@ -66,27 +67,59 @@
 
     <!-- Admin Dashboard (shown when authenticated) -->
     <div class="admin-grid hidden" id="admin-dashboard">
-      <!-- Sidebar - Specimen List -->
+      <!-- Sidebar -->
       <aside class="admin-sidebar">
-        <div style="margin-bottom: 20px;">
-          <button class="btn btn--primary" style="width: 100%;" onclick="showNewForm()">
-            + File New Report
-          </button>
+        <!-- Tabs -->
+        <div class="admin-tabs">
+          <button class="admin-tab admin-tab--active" id="tab-specimens" onclick="switchTab('specimens')">Specimens</button>
+          <button class="admin-tab" id="tab-fieldnotes" onclick="switchTab('fieldnotes')">Field Notes</button>
         </div>
 
-        <h3 style="color: var(--neon-yellow); margin-bottom: 15px; font-size: 1rem;">SPECIMEN REGISTRY</h3>
+        <!-- Specimens Sidebar Content -->
+        <div id="specimens-sidebar">
+          <div style="margin: 15px 0;">
+            <button class="btn btn--primary" style="width: 100%;" onclick="showNewForm()">
+              + File New Report
+            </button>
+          </div>
 
-        <div class="loading hidden" id="sidebar-loading">
-          <div class="loading__spinner" style="width: 30px; height: 30px;"></div>
+          <h3 style="color: var(--neon-yellow); margin-bottom: 15px; font-size: 0.9rem;">SPECIMEN REGISTRY</h3>
+
+          <div class="loading hidden" id="sidebar-loading">
+            <div class="loading__spinner" style="width: 30px; height: 30px;"></div>
+          </div>
+
+          <ul class="admin-list" id="specimen-list">
+            <!-- Specimen list items will be inserted here -->
+          </ul>
+
+          <p class="hidden" id="no-specimens" style="color: #555; text-align: center; padding: 20px;">
+            No specimens in database.
+          </p>
         </div>
 
-        <ul class="admin-list" id="specimen-list">
-          <!-- Specimen list items will be inserted here -->
-        </ul>
+        <!-- Field Notes Sidebar Content -->
+        <div id="fieldnotes-sidebar" class="hidden">
+          <div style="margin: 15px 0;">
+            <button class="btn btn--primary" style="width: 100%;" onclick="showNewNoteForm()">
+              + Add Field Note
+            </button>
+          </div>
 
-        <p class="hidden" id="no-specimens" style="color: #555; text-align: center; padding: 20px;">
-          No specimens in database.
-        </p>
+          <h3 style="color: var(--neon-yellow); margin-bottom: 15px; font-size: 0.9rem;">FIELD NOTES</h3>
+
+          <div class="loading hidden" id="notes-sidebar-loading">
+            <div class="loading__spinner" style="width: 30px; height: 30px;"></div>
+          </div>
+
+          <ul class="admin-list" id="fieldnotes-list">
+            <!-- Field note list items will be inserted here -->
+          </ul>
+
+          <p class="hidden" id="no-fieldnotes" style="color: #555; text-align: center; padding: 20px;">
+            No field notes in database.
+          </p>
+        </div>
       </aside>
 
       <!-- Main Area - Form -->
@@ -258,11 +291,83 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
             </div>
           </form>
         </div>
+
+        <!-- Field Note Form -->
+        <div class="hidden" id="fieldnote-form-container">
+          <h2 id="note-form-title" style="color: var(--neon-yellow); margin-bottom: 20px;">ADD FIELD NOTE</h2>
+
+          <form id="fieldnote-form">
+            <input type="hidden" id="note-id">
+
+            <!-- Basic Info Section -->
+            <div class="panel">
+              <div class="panel__title">/// NOTE DETAILS ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label" for="note-title">Title *</label>
+                  <input type="text" class="form-input" id="note-title" required placeholder="e.g., The Peepy Syndicate">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="note-category">Category *</label>
+                  <select class="form-select" id="note-category" required>
+                    <option value="ORGANIZATION">Organization</option>
+                    <option value="LOCATION">Location</option>
+                    <option value="SPECIES">Species</option>
+                    <option value="OTHER">Other Intel</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="note-content">Content *</label>
+                  <textarea class="form-textarea" id="note-content" required placeholder="Enter the field note content...
+
+Use [REDACTED:hidden text] syntax for classified information.
+
+Example: The organization was founded in [REDACTED:1947] by [REDACTED:Agent Quackers]."></textarea>
+                  <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">
+                    Tip: Use <code style="color: var(--hot-pink);">[REDACTED:text]</code> to hide sensitive information
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Related Specimens Section -->
+            <div class="panel">
+              <div class="panel__title">/// RELATED SPECIMENS ///</div>
+              <div class="panel__content">
+                <div class="form-group">
+                  <label class="form-label">Link to Specimens</label>
+                  <select class="form-select" id="note-specimens-select">
+                    <option value="">-- Select a specimen --</option>
+                  </select>
+                  <button type="button" class="btn btn--secondary mt-1" onclick="addRelatedSpecimen()">Add Specimen</button>
+                  <div class="tag-container mt-1" id="related-specimens-container">
+                    <!-- Related specimen tags will be inserted here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex gap-2 mt-3">
+              <button type="submit" class="btn btn--primary" id="note-submit-btn">
+                Save Note
+              </button>
+              <button type="button" class="btn btn--secondary" onclick="cancelNoteForm()">
+                Cancel
+              </button>
+              <button type="button" class="btn btn--danger hidden" id="note-delete-btn" onclick="deleteFieldNote()">
+                Delete Note
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
   </main>
 
-  <!-- Delete Confirmation Modal -->
+  <!-- Delete Confirmation Modal (Specimens) -->
   <div class="modal-overlay" id="delete-modal">
     <div class="modal">
       <div class="modal__header" style="background: var(--warning-red);">
@@ -278,6 +383,27 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
         <div class="flex gap-2 flex-center">
           <button class="btn btn--danger" onclick="confirmDelete()">Delete Forever</button>
           <button class="btn btn--secondary" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal (Field Notes) -->
+  <div class="modal-overlay" id="delete-note-modal">
+    <div class="modal">
+      <div class="modal__header" style="background: var(--warning-red);">
+        <span>CONFIRM DELETION</span>
+        <button class="modal__close" onclick="closeDeleteNoteModal()">&times;</button>
+      </div>
+      <div class="modal__body text-center">
+        <p style="color: var(--warning-red); font-size: 1.2rem; margin-bottom: 20px;">
+          Are you sure you want to permanently delete this field note?
+        </p>
+        <p style="color: var(--neon-yellow); margin-bottom: 30px;" id="delete-note-name"></p>
+        <p style="color: #555; margin-bottom: 30px;">This action cannot be undone.</p>
+        <div class="flex gap-2 flex-center">
+          <button class="btn btn--danger" onclick="confirmDeleteNote()">Delete Forever</button>
+          <button class="btn btn--secondary" onclick="closeDeleteNoteModal()">Cancel</button>
         </div>
       </div>
     </div>

@@ -569,6 +569,48 @@ a:hover {
   object-fit: cover;
 }
 
+.associate-link__relation {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: var(--electric-blue);
+  color: var(--bg-darker);
+  margin-left: 5px;
+}
+
+/* Field Notes List on Specimen Page */
+.fieldnotes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fieldnote-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  background: rgba(0, 255, 255, 0.1);
+  border: 2px solid var(--electric-blue);
+  color: var(--electric-blue);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.fieldnote-link:hover {
+  background: var(--electric-blue);
+  color: var(--bg-darker);
+}
+
+.fieldnote-link__category {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  color: var(--bg-darker);
+}
+
+.fieldnote-link__title {
+  font-size: 0.85rem;
+}
+
 /* Forms */
 .form-group {
   margin-bottom: 20px;

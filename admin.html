@@ -266,9 +266,12 @@ Example: The specimen was acquired from [REDACTED:Area 51] during operation [RED
               <div class="panel__content">
                 <div class="form-group">
                   <label class="form-label">Link to Other Specimens</label>
-                  <select class="form-select" id="associates-select">
-                    <option value="">-- Select a specimen --</option>
-                  </select>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select class="form-select" id="associates-select">
+                      <option value="">-- Select a specimen --</option>
+                    </select>
+                    <input type="text" class="form-input" id="associate-relation" placeholder="Relation (e.g., Sibling, Rival)">
+                  </div>
                   <button type="button" class="btn btn--secondary mt-1" onclick="addAssociate()">Add Associate</button>
                   <div class="tag-container mt-1" id="associates-container">
                     <!-- Associate tags will be inserted here -->

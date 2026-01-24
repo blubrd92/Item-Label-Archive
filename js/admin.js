@@ -447,7 +447,15 @@ async function editSpecimen(id) {
 
   currentEditId = id;
   abilities = specimen.specialAbilities || [];
-  associates = specimen.knownAssociates || [];
+
+  // Handle both old format (array of strings) and new format (array of objects)
+  const rawAssociates = specimen.knownAssociates || [];
+  associates = rawAssociates.map(assoc => {
+    if (typeof assoc === 'string') {
+      return { id: assoc, relation: null };
+    }
+    return assoc;
+  });
 
   formTitle.textContent = 'EDIT SPECIMEN';
   deleteBtn.classList.remove('hidden');
@@ -560,14 +568,24 @@ function renderAbilities() {
  */
 function addAssociate() {
   const select = document.getElementById('associates-select');
+  const relationInput = document.getElementById('associate-relation');
   const id = select.value;
+  const relation = relationInput.value.trim();
 
-  if (id && !associates.includes(id)) {
-    associates.push(id);
-    renderAssociates();
+  if (id) {
+    // Check if this specimen is already in the list
+    const existingIndex = associates.findIndex(a =>
+      (typeof a === 'string' && a === id) || (a && a.id === id)
+    );
+
+    if (existingIndex === -1) {
+      associates.push({ id: id, relation: relation || null });
+      renderAssociates();
+    }
   }
 
   select.value = '';
+  relationInput.value = '';
 }
 
 /**
@@ -583,13 +601,18 @@ function removeAssociate(index) {
  */
 function renderAssociates() {
   const container = document.getElementById('associates-container');
-  container.innerHTML = associates.map((id, index) => {
+  container.innerHTML = associates.map((assoc, index) => {
+    // Handle both old format (string) and new format (object)
+    const id = typeof assoc === 'string' ? assoc : assoc.id;
+    const relation = typeof assoc === 'object' ? assoc.relation : null;
+
     const specimen = allSpecimens.find(s => s.id === id);
     const name = specimen ? (specimen.name || specimen.codename || id) : id;
+    const relationDisplay = relation ? ` <span style="color: var(--electric-blue); font-size: 0.75rem;">(${escapeHtml(relation)})</span>` : '';
 
     return `
       <span class="tag">
-        ${escapeHtml(name)}
+        ${escapeHtml(name)}${relationDisplay}
         <span class="tag__remove" onclick="removeAssociate(${index})">&times;</span>
       </span>
     `;

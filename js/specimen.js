@@ -187,6 +187,9 @@ async function renderDossier(specimen) {
   // Known associates
   await renderAssociates(specimen);
 
+  // Related field notes
+  await renderFieldNotes(specimen);
+
   // Additional notes
   const notesPanel = document.getElementById('notes-panel');
   const notesEl = document.getElementById('specimen-notes');
@@ -215,47 +218,65 @@ async function renderAssociates(specimen) {
   const panel = document.getElementById('associates-panel');
   const container = document.getElementById('specimen-associates');
 
-  // Get direct associates
-  let associateIds = specimen.knownAssociates || [];
+  // Get direct associates (supports both old format [id] and new format [{id, relation}])
+  let directAssociates = (specimen.knownAssociates || []).map(assoc => {
+    if (typeof assoc === 'string') {
+      return { id: assoc, relation: null };
+    }
+    return assoc;
+  });
 
   // Also check for specimens that list this one as an associate (bi-directional)
   try {
-    const reverseQuery = await db.collection('specimens')
-      .where('knownAssociates', 'array-contains', specimen.id)
-      .get();
+    // Query all specimens and check client-side (supports both old and new formats)
+    const allSpecimensQuery = await db.collection('specimens').get();
 
-    reverseQuery.forEach(doc => {
-      if (!associateIds.includes(doc.id)) {
-        associateIds.push(doc.id);
+    allSpecimensQuery.forEach(doc => {
+      if (doc.id === specimen.id) return; // Skip self
+
+      const theirAssociates = doc.data().knownAssociates || [];
+
+      // Check if they list this specimen (handle both formats)
+      const theirEntry = theirAssociates.find(a =>
+        (typeof a === 'string' && a === specimen.id) ||
+        (a && a.id === specimen.id)
+      );
+
+      if (theirEntry) {
+        const existingIds = directAssociates.map(a => a.id);
+        if (!existingIds.includes(doc.id)) {
+          const relation = typeof theirEntry === 'object' ? theirEntry.relation : null;
+          directAssociates.push({ id: doc.id, relation: relation });
+        }
       }
     });
   } catch (error) {
     console.log('Could not fetch reverse associates:', error.message);
   }
 
-  if (associateIds.length === 0) {
+  if (directAssociates.length === 0) {
     return;
   }
 
   panel.classList.remove('hidden');
 
   // Fetch associate data
-  const associateLinks = await Promise.all(associateIds.map(async (id) => {
+  const associateLinks = await Promise.all(directAssociates.map(async (assoc) => {
     try {
       // Check cache first
-      if (associatesCache[id]) {
-        return createAssociateLink(associatesCache[id]);
+      if (associatesCache[assoc.id]) {
+        return createAssociateLink(associatesCache[assoc.id], assoc.relation);
       }
 
-      const doc = await db.collection('specimens').doc(id).get();
+      const doc = await db.collection('specimens').doc(assoc.id).get();
       if (doc.exists) {
         const data = { id: doc.id, ...doc.data() };
-        associatesCache[id] = data;
-        return createAssociateLink(data);
+        associatesCache[assoc.id] = data;
+        return createAssociateLink(data, assoc.relation);
       }
       return null;
     } catch (error) {
-      console.log('Could not fetch associate:', id);
+      console.log('Could not fetch associate:', assoc.id);
       return null;
     }
   }));
@@ -264,11 +285,66 @@ async function renderAssociates(specimen) {
 }
 
 /**
- * Create HTML for an associate link
- * @param {Object} associate
+ * Render related field notes section
+ * @param {Object} specimen
+ */
+async function renderFieldNotes(specimen) {
+  const panel = document.getElementById('fieldnotes-panel');
+  const container = document.getElementById('specimen-fieldnotes');
+
+  try {
+    // Query field notes that reference this specimen
+    const notesQuery = await db.collection('fieldNotes')
+      .where('relatedSpecimens', 'array-contains', specimen.id)
+      .get();
+
+    if (notesQuery.empty) {
+      return;
+    }
+
+    panel.classList.remove('hidden');
+
+    const noteLinks = [];
+    notesQuery.forEach(doc => {
+      const note = { id: doc.id, ...doc.data() };
+      noteLinks.push(createFieldNoteLink(note));
+    });
+
+    container.innerHTML = noteLinks.join('');
+  } catch (error) {
+    console.log('Could not fetch related field notes:', error.message);
+  }
+}
+
+/**
+ * Create HTML for a field note link
+ * @param {Object} note
  * @returns {string}
  */
-function createAssociateLink(associate) {
+function createFieldNoteLink(note) {
+  const categoryColors = {
+    'ORGANIZATION': 'var(--hot-pink)',
+    'LOCATION': 'var(--electric-blue)',
+    'SPECIES': 'var(--cyber-green)',
+    'OTHER': 'var(--neon-yellow)'
+  };
+  const color = categoryColors[note.category] || 'var(--cyber-green)';
+
+  return `
+    <a href="fieldnotes.html" class="fieldnote-link" onclick="sessionStorage.setItem('openNote', '${note.id}')">
+      <span class="fieldnote-link__category" style="background: ${color};">${note.category || 'NOTE'}</span>
+      <span class="fieldnote-link__title">${escapeHtml(note.title || 'Untitled')}</span>
+    </a>
+  `;
+}
+
+/**
+ * Create HTML for an associate link
+ * @param {Object} associate
+ * @param {string|null} relation
+ * @returns {string}
+ */
+function createAssociateLink(associate, relation) {
   const avatar = associate.mugshot || 'data:image/svg+xml,' + encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
       <rect fill="#1a1a1a" width="30" height="30"/>
@@ -276,10 +352,13 @@ function createAssociateLink(associate) {
     </svg>
   `);
 
+  const relationBadge = relation ? `<span class="associate-link__relation">${escapeHtml(relation)}</span>` : '';
+
   return `
     <a href="specimen.html?id=${associate.id}" class="associate-link">
       <img src="${avatar}" alt="${associate.name}" class="associate-link__avatar">
       <span>${escapeHtml(associate.codename || associate.name || 'Unknown')}</span>
+      ${relationBadge}
     </a>
   `;
 }

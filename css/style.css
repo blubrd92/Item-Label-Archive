@@ -1571,325 +1571,139 @@ a:hover {
 }
 
 /* =====================================================
-   EASTER EGG - SNEAKY PEEPY
+   EASTER EGG - SNEAKY PEEPY (Pixel Art)
    ===================================================== */
 .sneaky-peepy {
   position: fixed;
   bottom: 20px;
   left: -100px;
-  width: 90px;
-  height: 70px;
   z-index: 9998;
   pointer-events: none;
   opacity: 0;
+  image-rendering: pixelated;
 }
 
-.sneaky-peepy__body {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* Main body - elongated with cow spots */
-.sneaky-peepy__torso {
-  position: absolute;
-  bottom: 12px;
-  left: 0;
-  width: 55px;
-  height: 35px;
-  background: #fff;
-  border-radius: 40%;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
-  border: 2px solid #333;
-  overflow: hidden;
-}
-
-/* Cow spots on body */
-.sneaky-peepy__spot {
-  position: absolute;
-  background: #222;
-  border-radius: 50%;
-}
-
-.sneaky-peepy__spot--1 {
-  width: 15px;
-  height: 12px;
-  top: 5px;
-  left: 8px;
-  border-radius: 40% 60% 50% 50%;
-}
-
-.sneaky-peepy__spot--2 {
-  width: 12px;
-  height: 10px;
-  bottom: 6px;
-  left: 20px;
-}
-
-.sneaky-peepy__spot--3 {
-  width: 10px;
-  height: 8px;
-  top: 12px;
-  right: 8px;
-}
-
-/* Head */
-.sneaky-peepy__head {
-  position: absolute;
-  bottom: 15px;
-  right: 0;
-  width: 38px;
-  height: 34px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
-  border: 2px solid #333;
-  overflow: hidden;
-}
-
-/* Spot on head */
-.sneaky-peepy__spot--head {
-  position: absolute;
-  width: 14px;
-  height: 10px;
-  background: #222;
-  border-radius: 50%;
-  top: 3px;
-  right: 5px;
-}
-
-/* Cat ears */
-.sneaky-peepy__ear {
-  position: absolute;
-  width: 12px;
-  height: 14px;
-  background: #fff;
-  border: 2px solid #333;
-  border-radius: 50% 50% 0 0;
-  top: -8px;
-}
-
-.sneaky-peepy__ear--left {
-  right: 28px;
-  transform: rotate(-15deg);
-}
-
-.sneaky-peepy__ear--right {
-  right: 8px;
-  transform: rotate(15deg);
-}
-
-/* Pink inner ears */
-.sneaky-peepy__ear::after {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 7px;
-  background: #ffb6c1;
-  border-radius: 50% 50% 0 0;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Googly eyes */
-.sneaky-peepy__eyes {
-  position: absolute;
-  top: 8px;
-  left: 4px;
-  display: flex;
-  gap: 4px;
-}
-
-.sneaky-peepy__eye {
-  width: 11px;
-  height: 11px;
-  background: #fff;
-  border-radius: 50%;
-  border: 2px solid #333;
-  position: relative;
-  overflow: hidden;
-}
-
-.sneaky-peepy__pupil {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #111;
-  border-radius: 50%;
-  bottom: 1px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Yellow duck beak */
-.sneaky-peepy__beak {
-  position: absolute;
-  bottom: 6px;
-  left: -6px;
-  width: 14px;
-  height: 10px;
-  background: #ffd700;
-  border-radius: 50% 20% 50% 50%;
-  border: 2px solid #333;
-}
-
-/* Beak smile line */
-.sneaky-peepy__beak::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 2px;
-  background: #c00;
-  top: 50%;
-  left: 2px;
-  border-radius: 2px;
-}
-
-/* Yellow feet */
-.sneaky-peepy__feet {
-  position: absolute;
-  bottom: 0;
-  left: 10px;
-  display: flex;
-  gap: 30px;
-}
-
-.sneaky-peepy__foot {
-  width: 12px;
-  height: 10px;
-  background: #ffd700;
-  border-radius: 50% 50% 40% 40%;
-  border: 2px solid #333;
-}
-
-/* Antenna with yellow ball */
-.sneaky-peepy__antenna {
-  position: absolute;
-  bottom: 40px;
-  left: 18px;
-  width: 3px;
-  height: 18px;
-  background: #333;
-}
-
-.sneaky-peepy__antenna::after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  background: #ffd700;
-  border-radius: 50%;
-  border: 2px solid #333;
+/* Pixel art Peepy using box-shadow technique */
+/* Each "pixel" is 4px x 4px */
+.sneaky-peepy__sprite {
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  box-shadow:
+    /* Antenna ball (yellow) */
+    20px 0 0 #ffd700, 24px 0 0 #ffd700,
+    20px 4px 0 #ffd700, 24px 4px 0 #ffd700,
+    /* Antenna stick */
+    20px 8px 0 #222, 24px 8px 0 #222,
+    20px 12px 0 #222,
+    /* Left ear */
+    8px 8px 0 #fff, 12px 8px 0 #fff,
+    4px 12px 0 #fff, 8px 12px 0 #ffb6c1, 12px 12px 0 #fff,
+    4px 16px 0 #fff, 8px 16px 0 #ffb6c1, 12px 16px 0 #fff,
+    /* Right ear */
+    28px 8px 0 #fff, 32px 8px 0 #fff,
+    28px 12px 0 #fff, 32px 12px 0 #ffb6c1, 36px 12px 0 #fff,
+    28px 16px 0 #fff, 32px 16px 0 #ffb6c1, 36px 16px 0 #fff,
+    /* Head top */
+    12px 16px 0 #fff, 16px 16px 0 #222, 20px 16px 0 #fff, 24px 16px 0 #fff, 28px 16px 0 #fff,
+    /* Head row 2 */
+    8px 20px 0 #fff, 12px 20px 0 #fff, 16px 20px 0 #222, 20px 20px 0 #222, 24px 20px 0 #fff, 28px 20px 0 #fff, 32px 20px 0 #fff,
+    /* Head row 3 - eyes */
+    8px 24px 0 #fff, 12px 24px 0 #fff, 16px 24px 0 #fff, 20px 24px 0 #fff, 24px 24px 0 #fff, 28px 24px 0 #fff, 32px 24px 0 #fff,
+    /* Eyes */
+    12px 28px 0 #fff, 16px 28px 0 #222, 20px 28px 0 #fff, 24px 28px 0 #fff, 28px 28px 0 #222, 32px 28px 0 #fff,
+    8px 28px 0 #fff, 36px 28px 0 #fff,
+    /* Below eyes / cheeks */
+    8px 32px 0 #fff, 12px 32px 0 #fff, 16px 32px 0 #fff, 20px 32px 0 #fff, 24px 32px 0 #fff, 28px 32px 0 #fff, 32px 32px 0 #fff, 36px 32px 0 #fff,
+    /* Beak row 1 */
+    8px 36px 0 #fff, 12px 36px 0 #fff, 16px 36px 0 #fff, 20px 36px 0 #fff, 24px 36px 0 #fff, 28px 36px 0 #fff, 32px 36px 0 #fff,
+    36px 36px 0 #ffd700, 40px 36px 0 #ffd700,
+    /* Beak row 2 + body start */
+    4px 40px 0 #fff, 8px 40px 0 #222, 12px 40px 0 #222, 16px 40px 0 #fff, 20px 40px 0 #fff, 24px 40px 0 #fff, 28px 40px 0 #fff,
+    32px 40px 0 #ffd700, 36px 40px 0 #ffd700, 40px 40px 0 #ffd700, 44px 40px 0 #ffd700,
+    /* Beak smile */
+    36px 44px 0 #c00, 40px 44px 0 #c00,
+    /* Body row 1 */
+    0px 44px 0 #fff, 4px 44px 0 #fff, 8px 44px 0 #222, 12px 44px 0 #222, 16px 44px 0 #fff, 20px 44px 0 #fff, 24px 44px 0 #222, 28px 44px 0 #fff, 32px 44px 0 #fff,
+    /* Body row 2 */
+    0px 48px 0 #fff, 4px 48px 0 #fff, 8px 48px 0 #fff, 12px 48px 0 #222, 16px 48px 0 #222, 20px 48px 0 #fff, 24px 48px 0 #222, 28px 48px 0 #222, 32px 48px 0 #fff,
+    /* Body row 3 */
+    0px 52px 0 #fff, 4px 52px 0 #222, 8px 52px 0 #fff, 12px 52px 0 #fff, 16px 52px 0 #222, 20px 52px 0 #fff, 24px 52px 0 #fff, 28px 52px 0 #222, 32px 52px 0 #fff,
+    /* Body row 4 */
+    4px 56px 0 #fff, 8px 56px 0 #fff, 12px 56px 0 #fff, 16px 56px 0 #fff, 20px 56px 0 #222, 24px 56px 0 #222, 28px 56px 0 #fff,
+    /* Feet */
+    4px 60px 0 #ffd700, 8px 60px 0 #ffd700, 20px 60px 0 #ffd700, 24px 60px 0 #ffd700,
+    4px 64px 0 #ffd700, 8px 64px 0 #ffd700, 20px 64px 0 #ffd700, 24px 64px 0 #ffd700;
+  transform: scale(1);
 }
 
 /* Animation states */
 .sneaky-peepy.animate {
   opacity: 1;
-  animation: peepy-sneak 8s ease-in-out forwards;
+  animation: peepy-sneak 8s linear forwards;
 }
 
-.sneaky-peepy.animate .sneaky-peepy__body {
-  animation: peepy-waddle 0.3s ease-in-out infinite;
-}
-
-.sneaky-peepy.animate .sneaky-peepy__pupil {
-  animation: peepy-look 8s ease-in-out forwards;
+.sneaky-peepy.animate .sneaky-peepy__sprite {
+  animation: peepy-hop 0.4s steps(1) infinite;
 }
 
 /* Sneaking across screen */
 @keyframes peepy-sneak {
   0% {
-    left: -100px;
+    left: -80px;
     opacity: 0;
   }
-  5% {
-    left: -100px;
+  3% {
+    left: -80px;
     opacity: 1;
   }
   /* Peek in */
-  10% {
-    left: 20px;
+  12% {
+    left: 30px;
   }
   /* Pause and look */
-  20% {
-    left: 20px;
+  25% {
+    left: 30px;
   }
   /* Sneak to middle */
-  45% {
+  50% {
     left: 45%;
   }
   /* Pause in middle */
-  55% {
+  62% {
     left: 45%;
   }
   /* Startled! Run away */
-  60% {
+  65% {
     left: 45%;
   }
   100% {
-    left: calc(100% + 100px);
+    left: calc(100% + 80px);
     opacity: 1;
   }
 }
 
-/* Waddle walk */
-@keyframes peepy-waddle {
+/* Pixel hop animation */
+@keyframes peepy-hop {
   0%, 100% {
-    transform: rotate(-2deg) translateY(0);
+    transform: translateY(0);
   }
   50% {
-    transform: rotate(2deg) translateY(-2px);
+    transform: translateY(-4px);
   }
 }
 
-/* Googly eyes looking around */
-@keyframes peepy-look {
-  0%, 10% {
-    transform: translateX(-50%);
-  }
-  15%, 20% {
-    transform: translateX(-80%);
-  }
-  25%, 35% {
-    transform: translateX(-20%);
-  }
-  40%, 55% {
-    transform: translateX(-50%);
-  }
-  /* Startled - look forward */
-  58%, 100% {
-    transform: translateX(-50%);
-  }
-}
-
-/* Speed up when running away */
-.sneaky-peepy.animate.startled .sneaky-peepy__body {
-  animation: peepy-run 0.12s ease-in-out infinite;
-}
-
-.sneaky-peepy.animate.startled .sneaky-peepy__antenna {
-  animation: antenna-bounce 0.12s ease-in-out infinite;
+/* Speed up when startled */
+.sneaky-peepy.animate.startled .sneaky-peepy__sprite {
+  animation: peepy-run 0.15s steps(1) infinite;
 }
 
 @keyframes peepy-run {
   0%, 100% {
-    transform: rotate(-4deg) translateY(0);
+    transform: translateY(0);
   }
   50% {
-    transform: rotate(4deg) translateY(-4px);
-  }
-}
-
-@keyframes antenna-bounce {
-  0%, 100% {
-    transform: rotate(-10deg);
-  }
-  50% {
-    transform: rotate(10deg);
+    transform: translateY(-8px);
   }
 }
 

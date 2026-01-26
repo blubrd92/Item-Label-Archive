@@ -80,41 +80,9 @@
     </div>
   </main>
 
-  <!-- Sneaky Peepy Easter Egg -->
+  <!-- Sneaky Peepy Easter Egg (Pixel Art) -->
   <div class="sneaky-peepy" id="sneaky-peepy">
-    <div class="sneaky-peepy__body">
-      <!-- Antenna with ball -->
-      <div class="sneaky-peepy__antenna"></div>
-      <!-- Body with cow spots -->
-      <div class="sneaky-peepy__torso">
-        <div class="sneaky-peepy__spot sneaky-peepy__spot--1"></div>
-        <div class="sneaky-peepy__spot sneaky-peepy__spot--2"></div>
-        <div class="sneaky-peepy__spot sneaky-peepy__spot--3"></div>
-      </div>
-      <!-- Head -->
-      <div class="sneaky-peepy__head">
-        <div class="sneaky-peepy__spot--head"></div>
-        <!-- Cat ears -->
-        <div class="sneaky-peepy__ear sneaky-peepy__ear--left"></div>
-        <div class="sneaky-peepy__ear sneaky-peepy__ear--right"></div>
-        <!-- Googly eyes -->
-        <div class="sneaky-peepy__eyes">
-          <div class="sneaky-peepy__eye">
-            <div class="sneaky-peepy__pupil"></div>
-          </div>
-          <div class="sneaky-peepy__eye">
-            <div class="sneaky-peepy__pupil"></div>
-          </div>
-        </div>
-        <!-- Duck beak -->
-        <div class="sneaky-peepy__beak"></div>
-      </div>
-      <!-- Yellow feet -->
-      <div class="sneaky-peepy__feet">
-        <div class="sneaky-peepy__foot"></div>
-        <div class="sneaky-peepy__foot"></div>
-      </div>
-    </div>
+    <div class="sneaky-peepy__sprite"></div>
   </div>
 
   <!-- Footer -->
@@ -135,21 +103,17 @@
     // Set current year in footer
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Sneaky Peepy Easter Egg - Konami Code
+    // Sneaky Peepy Easter Egg - Konami Code + Mobile tap
     (function() {
       const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
       let konamiIndex = 0;
       let peepyRunning = false;
 
+      // Konami code for desktop
       document.addEventListener('keydown', function(e) {
         if (peepyRunning) return;
 
-        const key = e.key.toLowerCase() === e.key ? e.key : e.key;
-        const expected = konamiCode[konamiIndex].toLowerCase() === konamiCode[konamiIndex]
-          ? konamiCode[konamiIndex]
-          : konamiCode[konamiIndex];
-
-        if (e.key === expected) {
+        if (e.key === konamiCode[konamiIndex]) {
           konamiIndex++;
           if (konamiIndex === konamiCode.length) {
             triggerPeepy();
@@ -160,6 +124,29 @@
         }
       });
 
+      // Tap logo 5 times for mobile
+      let tapCount = 0;
+      let tapTimer = null;
+      const logo = document.querySelector('.header__logo');
+
+      if (logo) {
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', function() {
+          if (peepyRunning) return;
+
+          tapCount++;
+          clearTimeout(tapTimer);
+
+          // Reset tap count after 2 seconds of no taps
+          tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+
+          if (tapCount >= 5) {
+            triggerPeepy();
+            tapCount = 0;
+          }
+        });
+      }
+
       function triggerPeepy() {
         peepyRunning = true;
         const peepy = document.getElementById('sneaky-peepy');
@@ -168,7 +155,7 @@
         // Add startled class partway through for faster run
         setTimeout(() => {
           peepy.classList.add('startled');
-        }, 4800);
+        }, 5200);
 
         // Reset after animation
         setTimeout(() => {

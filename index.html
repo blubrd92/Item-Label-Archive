@@ -80,6 +80,43 @@
     </div>
   </main>
 
+  <!-- Sneaky Peepy Easter Egg -->
+  <div class="sneaky-peepy" id="sneaky-peepy">
+    <div class="sneaky-peepy__body">
+      <!-- Antenna with ball -->
+      <div class="sneaky-peepy__antenna"></div>
+      <!-- Body with cow spots -->
+      <div class="sneaky-peepy__torso">
+        <div class="sneaky-peepy__spot sneaky-peepy__spot--1"></div>
+        <div class="sneaky-peepy__spot sneaky-peepy__spot--2"></div>
+        <div class="sneaky-peepy__spot sneaky-peepy__spot--3"></div>
+      </div>
+      <!-- Head -->
+      <div class="sneaky-peepy__head">
+        <div class="sneaky-peepy__spot--head"></div>
+        <!-- Cat ears -->
+        <div class="sneaky-peepy__ear sneaky-peepy__ear--left"></div>
+        <div class="sneaky-peepy__ear sneaky-peepy__ear--right"></div>
+        <!-- Googly eyes -->
+        <div class="sneaky-peepy__eyes">
+          <div class="sneaky-peepy__eye">
+            <div class="sneaky-peepy__pupil"></div>
+          </div>
+          <div class="sneaky-peepy__eye">
+            <div class="sneaky-peepy__pupil"></div>
+          </div>
+        </div>
+        <!-- Duck beak -->
+        <div class="sneaky-peepy__beak"></div>
+      </div>
+      <!-- Yellow feet -->
+      <div class="sneaky-peepy__feet">
+        <div class="sneaky-peepy__foot"></div>
+        <div class="sneaky-peepy__foot"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer class="footer">
     <p>BUREAU OF PEEPY INVESTIGATION &copy; <span id="year"></span></p>
@@ -97,6 +134,49 @@
   <script>
     // Set current year in footer
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Sneaky Peepy Easter Egg - Konami Code
+    (function() {
+      const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+      let konamiIndex = 0;
+      let peepyRunning = false;
+
+      document.addEventListener('keydown', function(e) {
+        if (peepyRunning) return;
+
+        const key = e.key.toLowerCase() === e.key ? e.key : e.key;
+        const expected = konamiCode[konamiIndex].toLowerCase() === konamiCode[konamiIndex]
+          ? konamiCode[konamiIndex]
+          : konamiCode[konamiIndex];
+
+        if (e.key === expected) {
+          konamiIndex++;
+          if (konamiIndex === konamiCode.length) {
+            triggerPeepy();
+            konamiIndex = 0;
+          }
+        } else {
+          konamiIndex = 0;
+        }
+      });
+
+      function triggerPeepy() {
+        peepyRunning = true;
+        const peepy = document.getElementById('sneaky-peepy');
+        peepy.classList.add('animate');
+
+        // Add startled class partway through for faster run
+        setTimeout(() => {
+          peepy.classList.add('startled');
+        }, 4800);
+
+        // Reset after animation
+        setTimeout(() => {
+          peepy.classList.remove('animate', 'startled');
+          peepyRunning = false;
+        }, 8000);
+      }
+    })();
   </script>
 </body>
 </html>

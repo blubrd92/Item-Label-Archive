@@ -403,6 +403,14 @@ a:hover {
   font-size: 0.8rem;
 }
 
+.threat-level__label {
+  color: var(--electric-blue);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 3px;
+}
+
 .threat-level__bar {
   width: 8px;
   height: 8px;
@@ -520,14 +528,12 @@ a:hover {
 }
 
 .photo-gallery__item {
-  border: 3px solid var(--cyber-green);
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
 }
 
 .photo-gallery__item:hover {
-  border-color: var(--neon-yellow);
   transform: scale(1.05);
 }
 
@@ -1562,5 +1568,328 @@ a:hover {
   bottom: 30px;
   right: 30px;
   z-index: 100;
+}
+
+/* =====================================================
+   EASTER EGG - SNEAKY PEEPY
+   ===================================================== */
+.sneaky-peepy {
+  position: fixed;
+  bottom: 20px;
+  left: -100px;
+  width: 90px;
+  height: 70px;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.sneaky-peepy__body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Main body - elongated with cow spots */
+.sneaky-peepy__torso {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 55px;
+  height: 35px;
+  background: #fff;
+  border-radius: 40%;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  border: 2px solid #333;
+  overflow: hidden;
+}
+
+/* Cow spots on body */
+.sneaky-peepy__spot {
+  position: absolute;
+  background: #222;
+  border-radius: 50%;
+}
+
+.sneaky-peepy__spot--1 {
+  width: 15px;
+  height: 12px;
+  top: 5px;
+  left: 8px;
+  border-radius: 40% 60% 50% 50%;
+}
+
+.sneaky-peepy__spot--2 {
+  width: 12px;
+  height: 10px;
+  bottom: 6px;
+  left: 20px;
+}
+
+.sneaky-peepy__spot--3 {
+  width: 10px;
+  height: 8px;
+  top: 12px;
+  right: 8px;
+}
+
+/* Head */
+.sneaky-peepy__head {
+  position: absolute;
+  bottom: 15px;
+  right: 0;
+  width: 38px;
+  height: 34px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  border: 2px solid #333;
+  overflow: hidden;
+}
+
+/* Spot on head */
+.sneaky-peepy__spot--head {
+  position: absolute;
+  width: 14px;
+  height: 10px;
+  background: #222;
+  border-radius: 50%;
+  top: 3px;
+  right: 5px;
+}
+
+/* Cat ears */
+.sneaky-peepy__ear {
+  position: absolute;
+  width: 12px;
+  height: 14px;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 50% 50% 0 0;
+  top: -8px;
+}
+
+.sneaky-peepy__ear--left {
+  right: 28px;
+  transform: rotate(-15deg);
+}
+
+.sneaky-peepy__ear--right {
+  right: 8px;
+  transform: rotate(15deg);
+}
+
+/* Pink inner ears */
+.sneaky-peepy__ear::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 7px;
+  background: #ffb6c1;
+  border-radius: 50% 50% 0 0;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Googly eyes */
+.sneaky-peepy__eyes {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  display: flex;
+  gap: 4px;
+}
+
+.sneaky-peepy__eye {
+  width: 11px;
+  height: 11px;
+  background: #fff;
+  border-radius: 50%;
+  border: 2px solid #333;
+  position: relative;
+  overflow: hidden;
+}
+
+.sneaky-peepy__pupil {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #111;
+  border-radius: 50%;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Yellow duck beak */
+.sneaky-peepy__beak {
+  position: absolute;
+  bottom: 6px;
+  left: -6px;
+  width: 14px;
+  height: 10px;
+  background: #ffd700;
+  border-radius: 50% 20% 50% 50%;
+  border: 2px solid #333;
+}
+
+/* Beak smile line */
+.sneaky-peepy__beak::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background: #c00;
+  top: 50%;
+  left: 2px;
+  border-radius: 2px;
+}
+
+/* Yellow feet */
+.sneaky-peepy__feet {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  display: flex;
+  gap: 30px;
+}
+
+.sneaky-peepy__foot {
+  width: 12px;
+  height: 10px;
+  background: #ffd700;
+  border-radius: 50% 50% 40% 40%;
+  border: 2px solid #333;
+}
+
+/* Antenna with yellow ball */
+.sneaky-peepy__antenna {
+  position: absolute;
+  bottom: 40px;
+  left: 18px;
+  width: 3px;
+  height: 18px;
+  background: #333;
+}
+
+.sneaky-peepy__antenna::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #ffd700;
+  border-radius: 50%;
+  border: 2px solid #333;
+}
+
+/* Animation states */
+.sneaky-peepy.animate {
+  opacity: 1;
+  animation: peepy-sneak 8s ease-in-out forwards;
+}
+
+.sneaky-peepy.animate .sneaky-peepy__body {
+  animation: peepy-waddle 0.3s ease-in-out infinite;
+}
+
+.sneaky-peepy.animate .sneaky-peepy__pupil {
+  animation: peepy-look 8s ease-in-out forwards;
+}
+
+/* Sneaking across screen */
+@keyframes peepy-sneak {
+  0% {
+    left: -100px;
+    opacity: 0;
+  }
+  5% {
+    left: -100px;
+    opacity: 1;
+  }
+  /* Peek in */
+  10% {
+    left: 20px;
+  }
+  /* Pause and look */
+  20% {
+    left: 20px;
+  }
+  /* Sneak to middle */
+  45% {
+    left: 45%;
+  }
+  /* Pause in middle */
+  55% {
+    left: 45%;
+  }
+  /* Startled! Run away */
+  60% {
+    left: 45%;
+  }
+  100% {
+    left: calc(100% + 100px);
+    opacity: 1;
+  }
+}
+
+/* Waddle walk */
+@keyframes peepy-waddle {
+  0%, 100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2deg) translateY(-2px);
+  }
+}
+
+/* Googly eyes looking around */
+@keyframes peepy-look {
+  0%, 10% {
+    transform: translateX(-50%);
+  }
+  15%, 20% {
+    transform: translateX(-80%);
+  }
+  25%, 35% {
+    transform: translateX(-20%);
+  }
+  40%, 55% {
+    transform: translateX(-50%);
+  }
+  /* Startled - look forward */
+  58%, 100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Speed up when running away */
+.sneaky-peepy.animate.startled .sneaky-peepy__body {
+  animation: peepy-run 0.12s ease-in-out infinite;
+}
+
+.sneaky-peepy.animate.startled .sneaky-peepy__antenna {
+  animation: antenna-bounce 0.12s ease-in-out infinite;
+}
+
+@keyframes peepy-run {
+  0%, 100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-4px);
+  }
+}
+
+@keyframes antenna-bounce {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
 }
 

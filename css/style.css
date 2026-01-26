@@ -530,7 +530,6 @@ a:hover {
 .photo-gallery__item {
   cursor: pointer;
   transition: all 0.2s ease;
-  overflow: hidden;
 }
 
 .photo-gallery__item:hover {

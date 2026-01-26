@@ -809,6 +809,9 @@ a:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.tag-container--input {
   padding: 10px;
   background: var(--bg-darker);
   border: 2px solid var(--cyber-green);
@@ -1273,9 +1276,6 @@ a:hover {
   }
 
   /* Tag container */
-  .tag-container {
-    padding: 8px;
-  }
 
   .tag {
     padding: 4px 10px;
@@ -1576,7 +1576,7 @@ a:hover {
 .sneaky-peepy {
   position: fixed;
   bottom: 20px;
-  left: -100px;
+  left: -120px;
   z-index: 9998;
   pointer-events: none;
   opacity: 0;
@@ -1584,57 +1584,55 @@ a:hover {
 }
 
 /* Pixel art Peepy using box-shadow technique */
-/* Each "pixel" is 4px x 4px */
+/* Each "pixel" is 3px x 3px, Peepy faces RIGHT */
 .sneaky-peepy__sprite {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   background: transparent;
   box-shadow:
-    /* Antenna ball (yellow) */
-    20px 0 0 #ffd700, 24px 0 0 #ffd700,
-    20px 4px 0 #ffd700, 24px 4px 0 #ffd700,
-    /* Antenna stick */
-    20px 8px 0 #222, 24px 8px 0 #222,
-    20px 12px 0 #222,
-    /* Left ear */
-    8px 8px 0 #fff, 12px 8px 0 #fff,
-    4px 12px 0 #fff, 8px 12px 0 #ffb6c1, 12px 12px 0 #fff,
-    4px 16px 0 #fff, 8px 16px 0 #ffb6c1, 12px 16px 0 #fff,
-    /* Right ear */
-    28px 8px 0 #fff, 32px 8px 0 #fff,
-    28px 12px 0 #fff, 32px 12px 0 #ffb6c1, 36px 12px 0 #fff,
-    28px 16px 0 #fff, 32px 16px 0 #ffb6c1, 36px 16px 0 #fff,
+    /* === ANTENNA (back of body) === */
+    6px 12px 0 #222,
+    6px 9px 0 #222,
+    6px 6px 0 #222,
+    /* Antenna ball */
+    3px 0px 0 #ffd700, 6px 0px 0 #ffd700, 9px 0px 0 #ffd700,
+    3px 3px 0 #ffd700, 6px 3px 0 #ffd700, 9px 3px 0 #ffd700,
+
+    /* === BACK BODY (left side, round with spots) === */
+    6px 15px 0 #fff, 9px 15px 0 #fff, 12px 15px 0 #fff, 15px 15px 0 #222, 18px 15px 0 #fff,
+    3px 18px 0 #fff, 6px 18px 0 #fff, 9px 18px 0 #222, 12px 18px 0 #222, 15px 18px 0 #fff, 18px 18px 0 #fff, 21px 18px 0 #fff,
+    3px 21px 0 #fff, 6px 21px 0 #222, 9px 21px 0 #222, 12px 21px 0 #fff, 15px 21px 0 #fff, 18px 21px 0 #222, 21px 21px 0 #fff,
+    3px 24px 0 #fff, 6px 24px 0 #fff, 9px 24px 0 #fff, 12px 24px 0 #222, 15px 24px 0 #222, 18px 24px 0 #fff, 21px 24px 0 #fff,
+    6px 27px 0 #fff, 9px 27px 0 #fff, 12px 27px 0 #222, 15px 27px 0 #fff, 18px 27px 0 #fff,
+
+    /* === FRONT BODY/HEAD (right side) === */
+    /* Ears */
+    27px 6px 0 #fff, 30px 6px 0 #fff,
+    27px 9px 0 #ffb6c1, 30px 9px 0 #fff,
+    39px 6px 0 #fff, 42px 6px 0 #fff,
+    39px 9px 0 #fff, 42px 9px 0 #ffb6c1,
     /* Head top */
-    12px 16px 0 #fff, 16px 16px 0 #222, 20px 16px 0 #fff, 24px 16px 0 #fff, 28px 16px 0 #fff,
-    /* Head row 2 */
-    8px 20px 0 #fff, 12px 20px 0 #fff, 16px 20px 0 #222, 20px 20px 0 #222, 24px 20px 0 #fff, 28px 20px 0 #fff, 32px 20px 0 #fff,
-    /* Head row 3 - eyes */
-    8px 24px 0 #fff, 12px 24px 0 #fff, 16px 24px 0 #fff, 20px 24px 0 #fff, 24px 24px 0 #fff, 28px 24px 0 #fff, 32px 24px 0 #fff,
-    /* Eyes */
-    12px 28px 0 #fff, 16px 28px 0 #222, 20px 28px 0 #fff, 24px 28px 0 #fff, 28px 28px 0 #222, 32px 28px 0 #fff,
-    8px 28px 0 #fff, 36px 28px 0 #fff,
-    /* Below eyes / cheeks */
-    8px 32px 0 #fff, 12px 32px 0 #fff, 16px 32px 0 #fff, 20px 32px 0 #fff, 24px 32px 0 #fff, 28px 32px 0 #fff, 32px 32px 0 #fff, 36px 32px 0 #fff,
-    /* Beak row 1 */
-    8px 36px 0 #fff, 12px 36px 0 #fff, 16px 36px 0 #fff, 20px 36px 0 #fff, 24px 36px 0 #fff, 28px 36px 0 #fff, 32px 36px 0 #fff,
-    36px 36px 0 #ffd700, 40px 36px 0 #ffd700,
-    /* Beak row 2 + body start */
-    4px 40px 0 #fff, 8px 40px 0 #222, 12px 40px 0 #222, 16px 40px 0 #fff, 20px 40px 0 #fff, 24px 40px 0 #fff, 28px 40px 0 #fff,
-    32px 40px 0 #ffd700, 36px 40px 0 #ffd700, 40px 40px 0 #ffd700, 44px 40px 0 #ffd700,
-    /* Beak smile */
-    36px 44px 0 #c00, 40px 44px 0 #c00,
-    /* Body row 1 */
-    0px 44px 0 #fff, 4px 44px 0 #fff, 8px 44px 0 #222, 12px 44px 0 #222, 16px 44px 0 #fff, 20px 44px 0 #fff, 24px 44px 0 #222, 28px 44px 0 #fff, 32px 44px 0 #fff,
-    /* Body row 2 */
-    0px 48px 0 #fff, 4px 48px 0 #fff, 8px 48px 0 #fff, 12px 48px 0 #222, 16px 48px 0 #222, 20px 48px 0 #fff, 24px 48px 0 #222, 28px 48px 0 #222, 32px 48px 0 #fff,
-    /* Body row 3 */
-    0px 52px 0 #fff, 4px 52px 0 #222, 8px 52px 0 #fff, 12px 52px 0 #fff, 16px 52px 0 #222, 20px 52px 0 #fff, 24px 52px 0 #fff, 28px 52px 0 #222, 32px 52px 0 #fff,
-    /* Body row 4 */
-    4px 56px 0 #fff, 8px 56px 0 #fff, 12px 56px 0 #fff, 16px 56px 0 #fff, 20px 56px 0 #222, 24px 56px 0 #222, 28px 56px 0 #fff,
-    /* Feet */
-    4px 60px 0 #ffd700, 8px 60px 0 #ffd700, 20px 60px 0 #ffd700, 24px 60px 0 #ffd700,
-    4px 64px 0 #ffd700, 8px 64px 0 #ffd700, 20px 64px 0 #ffd700, 24px 64px 0 #ffd700;
-  transform: scale(1);
+    24px 12px 0 #fff, 27px 12px 0 #fff, 30px 12px 0 #fff, 33px 12px 0 #222, 36px 12px 0 #fff, 39px 12px 0 #fff, 42px 12px 0 #fff, 45px 12px 0 #fff,
+    /* Head with eyes */
+    21px 15px 0 #fff, 24px 15px 0 #fff, 27px 15px 0 #fff, 30px 15px 0 #222, 33px 15px 0 #222, 36px 15px 0 #fff, 39px 15px 0 #fff, 42px 15px 0 #fff, 45px 15px 0 #fff,
+    21px 18px 0 #fff, 24px 18px 0 #fff, 27px 18px 0 #eee, 30px 18px 0 #111, 33px 18px 0 #fff, 36px 18px 0 #eee, 39px 18px 0 #111, 42px 18px 0 #fff, 45px 18px 0 #fff,
+    21px 21px 0 #fff, 24px 21px 0 #fff, 27px 21px 0 #fff, 30px 21px 0 #fff, 33px 21px 0 #fff, 36px 21px 0 #fff, 39px 21px 0 #fff, 42px 21px 0 #fff, 45px 21px 0 #fff,
+    /* Beak */
+    48px 18px 0 #ffd700, 51px 18px 0 #ffd700,
+    45px 21px 0 #ffd700, 48px 21px 0 #ffd700, 51px 21px 0 #ffd700, 54px 21px 0 #ffd700,
+    48px 24px 0 #ffd700, 51px 24px 0 #c00,
+    /* Lower head */
+    24px 24px 0 #fff, 27px 24px 0 #fff, 30px 24px 0 #fff, 33px 24px 0 #fff, 36px 24px 0 #222, 39px 24px 0 #fff, 42px 24px 0 #fff, 45px 24px 0 #fff,
+    27px 27px 0 #fff, 30px 27px 0 #fff, 33px 27px 0 #fff, 36px 27px 0 #222, 39px 27px 0 #222, 42px 27px 0 #fff,
+
+    /* === FEET (yellow) === */
+    /* Back feet */
+    6px 30px 0 #ffd700, 9px 30px 0 #ffd700,
+    15px 30px 0 #ffd700, 18px 30px 0 #ffd700,
+    /* Front feet */
+    30px 30px 0 #ffd700, 33px 30px 0 #ffd700,
+    39px 30px 0 #ffd700, 42px 30px 0 #ffd700;
+  transform: scale(1.2);
 }
 
 /* Animation states */
@@ -1650,11 +1648,11 @@ a:hover {
 /* Sneaking across screen */
 @keyframes peepy-sneak {
   0% {
-    left: -80px;
+    left: -100px;
     opacity: 0;
   }
   3% {
-    left: -80px;
+    left: -100px;
     opacity: 1;
   }
   /* Peek in */
@@ -1678,7 +1676,7 @@ a:hover {
     left: 45%;
   }
   100% {
-    left: calc(100% + 80px);
+    left: calc(100% + 100px);
     opacity: 1;
   }
 }
